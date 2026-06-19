@@ -14,6 +14,7 @@
       --color-primary: #0056b3;
       --color-primary-light: #e6f0fa;
       --color-success: #28a745;
+      --color-danger: #dc3545;
       --color-text: #212529;
       --color-text-muted: #6c757d;
       --color-border: #e9ecef;
@@ -22,7 +23,7 @@
       --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --radius-round: 50px;
       --radius-card: 16px;
-      --transition-base: all 0.3s ease;
+      --transition-base: all 0.25s ease;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,6 +58,40 @@
     }
 
     .screen.active { display: flex; }
+
+    /* Common Header Component */
+    .screen-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--color-primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      background: var(--color-primary-light);
+      border-radius: 10px;
+      height: 8px;
+      width: 100%;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: var(--color-primary);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
 
     /* ==========================================================================
        2. HOME SCREEN COMPONENTS
@@ -109,136 +144,100 @@
     /* ==========================================================================
        3. LESSON SCREEN COMPONENTS
        ========================================================================== */
-    .lesson-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .btn-back {
-      background: none;
-      border: none;
-      color: var(--color-primary);
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding: 4px 8px;
-    }
-
-    /* Progress Bar */
-    .progress-container {
-      background: var(--color-primary-light);
-      border-radius: 10px;
-      height: 8px;
-      width: 100%;
-      margin-bottom: 30px;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      background: var(--color-primary);
-      height: 100%;
-      width: 0%; /* JSで制御 */
-      transition: width 0.4s ease;
-    }
-
-    /* Lesson List UI */
-    .lesson-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-
+    .lesson-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
     .lesson-item {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 16px;
-      border-radius: var(--radius-card);
-      border: 2px solid var(--color-border);
-      background: var(--color-surface);
-      transition: var(--transition-base);
+      display: flex; align-items: center; gap: 15px; padding: 16px;
+      border-radius: var(--radius-card); border: 2px solid var(--color-border);
+      background: var(--color-surface); transition: var(--transition-base);
     }
-
-    /* Lesson States */
-    .lesson-item.active {
-      border-color: var(--color-primary);
-      background-color: #f0f7ff;
-      transform: translateX(5px);
-    }
-
-    .lesson-item.completed {
-      border-color: var(--color-success);
-      opacity: 0.8;
-    }
-
-    .lesson-item.completed .step-number {
-      background-color: var(--color-success);
-      color: white;
-    }
-
+    .lesson-item.active { border-color: var(--color-primary); background-color: #f0f7ff; transform: translateX(5px); }
+    .lesson-item.completed { border-color: var(--color-success); opacity: 0.8; }
+    .lesson-item.completed .step-number { background-color: var(--color-success); color: white; }
     .step-number {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--color-primary-light);
-      color: var(--color-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      flex-shrink: 0;
+      width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary-light);
+      color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
     }
-
     .lesson-info { flex: 1; }
     .lesson-label { font-size: 0.75rem; color: var(--color-text-muted); display: block; }
     .lesson-name { font-weight: 700; font-size: 1.1rem; }
-
-    /* Complete Button */
     .btn-complete {
-      width: 100%;
-      padding: 18px;
-      border-radius: var(--radius-round);
-      border: none;
-      background-color: var(--color-border);
-      color: var(--color-text-muted);
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: not-allowed;
-      transition: var(--transition-base);
+      width: 100%; padding: 18px; border-radius: var(--radius-round); border: none;
+      background-color: var(--color-border); color: var(--color-text-muted); font-size: 1.1rem; font-weight: 700; cursor: not-allowed; transition: var(--transition-base);
     }
-
-    .btn-complete.ready {
-      background-color: var(--color-success);
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
+    .btn-complete.ready { background-color: var(--color-success); color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3); }
 
     /* ==========================================================================
-       4. STATUS BAR
+       4. VOCABULARY SCREEN COMPONENTS
+       ========================================================================== */
+    .quiz-info { font-size: 0.9rem; color: var(--color-text-muted); font-weight: 600; margin-bottom: 4px; }
+    .word-card {
+      background: var(--color-bg);
+      border-radius: var(--radius-card);
+      padding: 32px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .quiz-word { font-size: 2.2rem; font-weight: 800; color: var(--color-primary); letter-spacing: -0.5px; }
+    .quiz-instruction { text-align: center; font-size: 0.95rem; color: var(--color-text-muted); margin-bottom: 16px; font-weight: 500; }
+    
+    .options-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .btn-option {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-round);
+      padding: 16px 24px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition-base);
+    }
+    .btn-option:active { transform: scale(0.99); }
+    
+    /* Quiz Feedback States */
+    .btn-option.correct { background-color: #d4edda; border-color: var(--color-success); color: #155724; font-weight: 700; }
+    .btn-option.wrong { background-color: #f8d7da; border-color: var(--color-danger); color: #721c24; opacity: 0.7; }
+    .btn-option:disabled { pointer-events: none; }
+
+    /* Result Overlay Box */
+    .result-box {
+      display: none;
+      background: #fff;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      margin-bottom: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .result-header { display: flex; align-items: center; gap: 10px; font-size: 1.4rem; font-weight: 800; margin-bottom: 12px; }
+    .result-header.correct { color: var(--color-success); }
+    .result-header.wrong { color: var(--color-danger); }
+    
+    .meta-row { font-size: 0.95rem; margin-bottom: 8px; color: var(--color-text-muted); }
+    .phonetic { font-family: monospace; background: var(--color-bg); padding: 2px 6px; border-radius: 4px; color: var(--color-text); }
+    .sentence-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--color-border); font-size: 0.95rem; }
+    .sentence-en { font-weight: 600; color: var(--color-text); margin-bottom: 4px; }
+    .sentence-ja { color: var(--color-text-muted); }
+
+    .quiz-actions { display: flex; gap: 12px; }
+    .quiz-actions button { flex: 1; padding: 14px; border-radius: var(--radius-round); font-weight: 700; font-size: 1rem; cursor: pointer; border: none; }
+    .btn-retry { background: var(--color-primary-light); color: var(--color-primary); }
+    .btn-next { background: var(--color-primary); color: #fff; }
+
+    /* ==========================================================================
+       5. STATUS BAR
        ========================================================================== */
     .status-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 72px;
-      background-color: var(--color-surface);
-      border-top: 1px solid var(--color-border);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 10;
+      position: absolute; bottom: 0; left: 0; right: 0; height: 72px;
+      background-color: var(--color-surface); border-top: 1px solid var(--color-border);
+      display: flex; justify-content: space-around; align-items: center; z-index: 10;
     }
-
     .status-item { text-align: center; }
     .status-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; display: block; }
     .status-value { font-size: 1.1rem; font-weight: 700; }
     .status-value.highlight { color: var(--color-primary); }
-
   </style>
 </head>
 <body>
@@ -250,37 +249,55 @@
         <h1 class="brand-title">Business English 10</h1>
         <p class="sub-title">今日も10分学習しましょう</p>
       </header>
-
       <div class="menu-grid">
-        <button class="btn-card primary" data-action="go-lesson">
-          <span>Today's Lesson</span>
-        </button>
-        <button class="btn-card" data-action="vocabulary"><span>Vocabulary</span></button>
+        <button class="btn-card primary" data-action="go-lesson"><span>Today's Lesson</span></button>
+        <button class="btn-card" data-action="go-vocab"><span>Vocabulary</span></button>
         <button class="btn-card" data-action="news"><span>News</span></button>
         <button class="btn-card" data-action="conversation"><span>Conversation</span></button>
         <button class="btn-card" data-action="writing"><span>Writing</span></button>
         <button class="btn-card" data-action="progress"><span>Progress</span></button>
       </div>
-
-      <footer>
-        <button class="btn-round" data-action="settings">設定</button>
-      </footer>
+      <footer><button class="btn-round" data-action="settings">設定</button></footer>
     </main>
 
     <main id="lessonScreen" class="screen">
-      <header class="lesson-header">
+      <header class="screen-header">
         <button class="btn-back" data-action="go-home">←</button>
-        <h2 class="lesson-title">Today's Lesson</h2>
+        <h2>Today's Lesson</h2>
       </header>
+      <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+      <div class="lesson-list" id="lessonList"></div>
+      <button id="completeBtn" class="btn-complete" data-action="complete-lesson">Complete!</button>
+    </main>
 
-      <div class="progress-container">
-        <div id="progressBar" class="progress-bar"></div>
+    <main id="vocabScreen" class="screen">
+      <header class="screen-header">
+        <button class="btn-back" data-action="go-home">←</button>
+        <h2>Vocabulary</h2>
+      </header>
+      <div class="quiz-info" id="quizProgressInfo">Question 1 / 20</div>
+      <div class="progress-container"><div id="vocabProgressBar" class="progress-bar"></div></div>
+      
+      <div class="word-card">
+        <div class="quiz-word" id="quizWord">---</div>
+      </div>
+      <p class="quiz-instruction">意味を選んでください。</p>
+
+      <div class="options-container" id="optionsContainer"></div>
+
+      <div class="result-box" id="resultBox">
+        <div class="result-header" id="resultHeader">〇 正解</div>
+        <div class="meta-row">発音記号: <span class="phonetic" id="quizPhonetic">/---/</span></div>
+        <div class="sentence-box">
+          <p class="sentence-en" id="quizSentenceEn">Example sentence goes here.</p>
+          <p class="sentence-ja" id="quizSentenceJa">例文の日本語訳。</p>
+        </div>
       </div>
 
-      <div class="lesson-list" id="lessonList">
-        </div>
-
-      <button id="completeBtn" class="btn-complete" data-action="complete-lesson">Complete!</button>
+      <div class="quiz-actions" id="quizActions" style="display: none;">
+        <button class="btn-retry" data-action="vocab-retry">再挑戦</button>
+        <button class="btn-next" id="vocabNextBtn" data-action="vocab-next">次へ</button>
+      </div>
     </main>
 
     <section class="status-bar">
@@ -296,10 +313,31 @@
   </div>
 
   <script>
-    /**
-     * アプリケーション設定とデータ
-     */
-    const LESSON_DATA = [
+    // ビジネス英単語マスターデータプール (30語の中から毎回20語ランダム抽出)
+    const VOCABULARY_POOL = [
+      { w: 'agenda', m: '協議事項、議題', p: '/əˈdʒen.də/', e: 'What is on the agenda for today’s meeting?', j: '今日の会議の議題は何ですか？' },
+      { w: 'allocate', m: '配分する、割り当てる', p: '/ˈæl.ə.keɪt/', e: 'We need to allocate resources efficiently.', j: '私たちは資源を効率的に配分する必要がある。' },
+      { w: 'collaborate', m: '共同で働く、協力する', p: '/kəˈlæb.ə.reɪt/', e: 'Let’s collaborate on this new project.', j: 'この新しいプロジェクトで協力しましょう。' },
+      { w: 'comply', m: '従う、順守する', p: '/kəmˈplaɪ/', e: 'All products must comply with safety standards.', j: 'すべての製品は安全基準を順守しなければならない。' },
+      { w: 'negotiate', m: '交渉する', p: '/nəˈɡoʊ.ʃi.eɪt/', e: 'She managed to negotiate a better contract.', j: '彼女はより良い契約を交渉で勝ち取った。' },
+      { w: 'revenue', m: '収益、歳入', p: '/ˈrev.ə.nuː/', e: 'The company reported a 10% increase in revenue.', j: 'その会社は収益の10%増加を報告した。' },
+      { w: 'implement', m: '実行する、実施する', p: '/ˈɪm.plə.ment/', e: 'We will implement the new strategy next month.', j: '来月、新しい戦略を実施します。' },
+      { w: 'feasible', m: '実現可能な', p: '/ˈfiː.zə.bəl/', e: 'The plan is financially feasible.', j: 'その計画は財政的に実現可能だ。' },
+      { w: 'discrepancy', m: '不一致、食い違い', p: '/dɪˈskrep.ən.si/', e: 'We found a discrepancy in the financial report.', j: '財務報告書に不一致が見つかりました。' },
+      { w: 'incentive', m: '動機、励み、インセンティブ', p: '/ɪnˈsen.tɪv/', e: 'The company offers cash incentives for good performance.', j: '会社は優れた業績に対して現金のインセンティブを提供している。' },
+      { w: 'strategy', m: '戦略、計略', p: '/ˈstræt.ə.dʒi/', e: 'We need a long-term strategy for growth.', j: '私たちには成長のための長期的な戦略が必要だ。' },
+      { w: 'compromise', m: '妥協、妥協する', p: '/ˈkɑːm.prə.maɪz/', e: 'After hours of discussion, they reached a compromise.', j: '何時間もの議論の末、彼らは妥協に達した。' },
+      { w: 'expedite', m: '迅速に処理する、捗らせる', p: '/ˈek.spə.daɪt/', e: 'We need to expedite the shipping process.', j: '出荷プロセスを迅速に処理する必要がある。' },
+      { w: 'innovative', m: '革新的な', p: '/ˈɪn.ə.veɪ.tɪv/', e: 'They are known for their innovative technology.', j: '彼らはその革新的な技術で知られている。' },
+      { w: 'liability', m: '法的責任、負債', p: '/ˌlaɪ.əˈbɪl.ə.t̬i/', e: 'The company accepts no liability for the damage.', j: '会社はその損害に対して一切の責任を負いません。' },
+      { w: 'merge', m: '合併する、統合する', p: '/mɝːdʒ/', e: 'The two tech giants decided to merge.', j: 'その2大IT巨頭は合併することを決定した。' },
+      { w: 'outsource', m: '外注する、アウトソーシングする', p: '/ˈaʊt.sɔːrs/', e: 'We outsource our customer support to a specialized agency.', j: '我が社はカスタマーサポートを専門の代理店に外注している。' },
+      { w: 'proactive', m: '先見的な、積極的な', p: '/ˌproʊˈæk.tɪv/', e: 'We need to take a proactive approach to problem-solving.', j: '問題解決には積極的なアプローチを取る必要がある。' },
+      { w: 'redundant', m: '余計な、人員余剰の', p: '/rɪˈdʌn.dənt/', e: 'The new software makes the manual process redundant.', j: '新しいソフトウェアにより、手動のプロセスは不要になります。' },
+      { w: 'subsidize', m: '補助金を発給する', p: '/ˈsʌb.sə.daɪz/', e: 'The government decides to subsidize renewable energy.', j: '政府は再生可能エネルギーに補助金を出すことを決定した。' }
+    ];
+
+    const LESSON_STEPS = [
       { id: 1, name: 'Vocabulary', type: 'Lesson 1' },
       { id: 2, name: 'News', type: 'Lesson 2' },
       { id: 3, name: 'Conversation', type: 'Lesson 3' },
@@ -309,8 +347,13 @@
     const App = {
       state: {
         currentScreen: 'home',
-        currentLessonStep: 1, // 1〜4
-        isCompleted: false
+        // Lesson State
+        currentLessonStep: 1,
+        // Quiz State
+        quizList: [],
+        currentQuizIndex: 0,
+        hasAnswered: false,
+        scoreIncrement: 0
       },
 
       init() {
@@ -325,11 +368,28 @@
         });
       },
 
-      // レッスンリストの動的生成
+      switchScreen(screenName) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`${screenName}Screen`).classList.add('active');
+        this.state.currentScreen = screenName;
+      },
+
+      // 配列シャッフル用ユーティリティ (Fisher-Yates)
+      shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      },
+
+      /* ==========================================================================
+         LESSON LOGIC
+         ========================================================================== */
       renderLessonList() {
         const listContainer = document.getElementById('lessonList');
-        listContainer.innerHTML = LESSON_DATA.map(lesson => `
-          <div class="lesson-item" id="item-${lesson.id}" onclick="App.goToStep(${lesson.id})">
+        listContainer.innerHTML = LESSON_STEPS.map(lesson => `
+          <div class="lesson-item" id="item-${lesson.id}">
             <div class="step-number">${lesson.id}</div>
             <div class="lesson-info">
               <span class="lesson-label">${lesson.type}</span>
@@ -340,73 +400,154 @@
         this.updateLessonUI();
       },
 
-      // レッスンUIの更新（プログレスバー、カードの状態）
       updateLessonUI() {
         const { currentLessonStep } = this.state;
-        
-        // プログレスバー更新 (1ステップ25%)
-        const progress = (currentLessonStep / LESSON_DATA.length) * 100;
+        const progress = (currentLessonStep / LESSON_STEPS.length) * 100;
         document.getElementById('progressBar').style.width = `${progress}%`;
 
-        // 各アイテムのクラス更新
-        LESSON_DATA.forEach(lesson => {
+        LESSON_STEPS.forEach(lesson => {
           const el = document.getElementById(`item-${lesson.id}`);
           el.classList.remove('active', 'completed');
-          
           if (lesson.id < currentLessonStep) {
             el.classList.add('completed');
             el.querySelector('.step-number').innerHTML = '✓';
           } else if (lesson.id === currentLessonStep) {
             el.classList.add('active');
             el.querySelector('.step-number').innerHTML = lesson.id;
-          } else {
-            el.querySelector('.step-number').innerHTML = lesson.id;
           }
         });
 
-        // Completeボタンの活性化チェック
         const btn = document.getElementById('completeBtn');
-        if (currentLessonStep === LESSON_DATA.length) {
-          btn.classList.add('ready');
-          btn.disabled = false;
+        btn.classList.toggle('ready', currentLessonStep === LESSON_STEPS.length);
+        btn.disabled = currentLessonStep !== LESSON_STEPS.length;
+      },
+
+      /* ==========================================================================
+         VOCABULARY LOGIC
+         ========================================================================== */
+      startVocabulary() {
+        // 全プールからランダムに20問抽出してセット
+        const shuffledPool = this.shuffle([...VOCABULARY_POOL]);
+        this.state.quizList = shuffledPool.slice(0, 20);
+        this.state.currentQuizIndex = 0;
+        this.switchScreen('vocab');
+        this.loadQuiz();
+      },
+
+      loadQuiz() {
+        this.state.hasAnswered = false;
+        const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
+        
+        // 進捗表示
+        document.getElementById('quizProgressInfo').textContent = `Question ${this.state.currentQuizIndex + 1} / 20`;
+        const progress = ((this.state.currentQuizIndex) / 20) * 100;
+        document.getElementById('vocabProgressBar').style.width = `${progress}%`;
+
+        // 単語セット
+        document.getElementById('quizWord').textContent = currentQuiz.w;
+        
+        // 4択選択肢の作成 (正解1 + 誤認プールからランダムに3つ)
+        const wrongOptions = VOCABULARY_POOL.filter(v => v.w !== currentQuiz.w);
+        this.shuffle(wrongOptions);
+        const selectedOptions = [currentQuiz.m, wrongOptions[0].m, wrongOptions[1].m, wrongOptions[2].m];
+        this.shuffle(selectedOptions); // 選択肢の並び替え
+
+        // 選択肢UI生成
+        const container = document.getElementById('optionsContainer');
+        container.innerHTML = selectedOptions.map(option => `
+          <button class="btn-option" onclick="App.handleAnswer(this, '${option}')">${option}</button>
+        `).join('');
+
+        // UIリセット
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('quizActions').style.display = 'none';
+        document.getElementById('vocabNextBtn').textContent = this.state.currentQuizIndex === 19 ? '結果を見る' : '次へ';
+      },
+
+      handleAnswer(selectedButton, selectedValue) {
+        if (this.state.hasAnswered) return;
+        this.state.hasAnswered = true;
+
+        const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
+        const isCorrect = selectedValue === currentQuiz.m;
+
+        // 全ボタン非活性化
+        const buttons = document.querySelectorAll('.btn-option');
+        buttons.forEach(btn => btn.disabled = true);
+
+        // 正誤判定クラス付与
+        if (isCorrect) {
+          selectedButton.classList.add('correct');
+          document.getElementById('resultHeader').innerHTML = '〇 正解';
+          document.getElementById('resultHeader').className = 'result-header correct';
+          this.state.scoreIncrement += 10; // 1問10点計算
         } else {
-          btn.classList.remove('ready');
-          btn.disabled = true;
+          selectedButton.classList.add('wrong');
+          document.getElementById('resultHeader').innerHTML = '× 不正解';
+          document.getElementById('resultHeader').className = 'result-header wrong';
+          // 正解のボタンをハイライト
+          buttons.forEach(btn => {
+            if (btn.textContent === currentQuiz.m) btn.classList.add('correct');
+          });
+        }
+
+        // 例文・発音記号の書き込みと表示
+        document.getElementById('quizPhonetic').textContent = currentQuiz.p;
+        document.getElementById('quizSentenceEn').textContent = currentQuiz.e;
+        document.getElementById('quizSentenceJa').textContent = currentQuiz.j;
+        document.getElementById('resultBox').style.display = 'block';
+        document.getElementById('quizActions').style.display = 'flex';
+      },
+
+      retryCurrentQuiz() {
+        this.loadQuiz();
+      },
+
+      nextQuiz() {
+        if (this.state.currentQuizIndex < 19) {
+          this.state.currentQuizIndex++;
+          this.loadQuiz();
+        } else {
+          // 全20問終了時
+          alert(`お疲れ様でした！今回のスコア: +${this.state.scoreIncrement} pts`);
+          // グローバルスコアへ反映
+          const currentScoreEl = document.getElementById('scoreValue');
+          let currentScore = parseInt(currentScoreEl.textContent);
+          currentScoreEl.textContent = `${currentScore + this.state.scoreIncrement} pts`;
+          
+          // 進捗ステップをインクリメントしてLesson画面へ戻る
+          this.state.currentLessonStep = 2; // Vocabulary完了によりステップ2(News)へ
+          this.updateLessonListAndUI();
+          this.switchScreen('lesson');
         }
       },
 
-      // 特定のステップに進む（デモ用）
-      goToStep(step) {
-        if (this.state.currentScreen !== 'lesson') return;
-        this.state.currentLessonStep = step;
-        this.updateLessonUI();
+      updateLessonListAndUI() {
+        this.renderLessonList();
       },
 
-      // スクリーン切り替え
-      switchScreen(screenName) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(`${screenName}Screen`).classList.add('active');
-        this.state.currentScreen = screenName;
-      },
-
+      /* ==========================================================================
+         GLOBAL ACTIONS ROUTER
+         ========================================================================== */
       actions: {
         'go-lesson': (ctx) => ctx.switchScreen('lesson'),
+        'go-vocab': (ctx) => ctx.startVocabulary(),
         'go-home': (ctx) => ctx.switchScreen('home'),
+        'vocab-retry': (ctx) => ctx.retryCurrentQuiz(),
+        'vocab-next': (ctx) => ctx.nextQuiz(),
         'complete-lesson': (ctx) => {
-          alert('Congratulations! Lesson Completed!');
+          alert('Congratulations! Today\'s Lesson Completed!');
           ctx.switchScreen('home');
-          // スコア加算などの処理をここに追加可能
         },
-        'vocabulary': () => alert('Vocabulary Menu'),
-        'news': () => alert('News Menu'),
-        'conversation': () => alert('Conversation Menu'),
-        'writing': () => alert('Writing Menu'),
+        'news': () => alert('News Menu (Under Construction)'),
+        'conversation': () => alert('Conversation Menu (Under Construction)'),
+        'writing': () => alert('Writing Menu (Under Construction)'),
         'progress': () => alert('Progress Menu'),
         'settings': () => alert('Settings Menu')
       }
     };
 
-    // 初期化
+    // アプリ起動
     App.init();
   </script>
 </body>
