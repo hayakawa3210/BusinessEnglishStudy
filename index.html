@@ -103,7 +103,10 @@
           <span class="badge toeic" id="newsToeic">TOEIC: 700+</span>
         </div>
         <div class="news-article-card">
-          <h3 class="news-title" id="newsTitleEn">Loading Title...</h3>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <h3 class="news-title" id="newsTitleEn">Loading Title...</h3>
+            <button class="btn-round" data-action="play-news-audio" style="padding:0.45rem 0.75rem; font-size:1rem;">🔊 Read</button>
+          </div>
           <p class="news-text-en" id="newsBodyEn">Loading Body...</p>
         </div>
         <h4 class="section-divider-title">日本語要約</h4>
@@ -127,6 +130,9 @@
       </div>
       <div class="loader-box" id="convLoader">講師が挨拶を準備中...💬</div>
       <div class="chat-container" id="chatWrapper" style="display: none; height: 360px;">
+        <div style="display:flex; justify-content:flex-end; padding: 16px;">
+          <button class="btn-round" data-action="play-chat-audio" style="padding:0.45rem 0.75rem; font-size:1rem;">🔊 Read AI</button>
+        </div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-bar" id="chatInputBar">
           <input type="text" id="chatInputField" class="chat-input-field" placeholder="Type your English response...">

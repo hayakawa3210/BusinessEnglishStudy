@@ -61,16 +61,33 @@ const App = {
   // 英語のテキストを音声で読み上げる共通関数
   speakEnglish(text) {
     if (!('speechSynthesis' in window)) return;
-    
-    // 再生中の音声を一度停止してリセット
-    window.speechSynthesis.cancel();  
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US'; // アメリカ英語
-    utterance.rate = 0.9;     // 速度（少しゆっくり）  
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
     const voices = window.speechSynthesis.getVoices();
     const englishVoice = voices.find(v => v.lang.startsWith('en'));
-    if (englishVoice) utterance.voice = englishVoice;  
+    if (englishVoice) utterance.voice = englishVoice;
     window.speechSynthesis.speak(utterance);
+  },
+
+  playNewsAudio() {
+    if (!this.state.newsData) {
+      alert('先にニュースを取得してください。');
+      return;
+    }
+    const { title, body } = this.state.newsData;
+    this.speakEnglish(`${title}. ${body}`);
+  },
+
+  playChatAudio() {
+    const latestAi = [...this.state.chatHistory].reverse().find(item => item.role === 'model');
+    if (!latestAi) {
+      alert('まだAIのメッセージがありません。');
+      return;
+    }
+    const text = latestAi.parts.map(part => part.text).join('');
+    this.speakEnglish(text);
   },
 
   bindEvents() {
@@ -490,7 +507,9 @@ speakEnglish(text) {
     'vocab-retry': (ctx) => ctx.retryCurrentQuiz(),
     'vocab-next': (ctx) => ctx.nextQuiz(),
     'fetch-news-api': (ctx) => ctx.handleNewsGeneration(),
+    'play-news-audio': (ctx) => ctx.playNewsAudio(),
     'start-chat-api': (ctx) => ctx.startConversationLesson(),
+    'play-chat-audio': (ctx) => ctx.playChatAudio(),
     'send-chat-msg': (ctx) => ctx.handleUserSendMessage(),
     'finish-conv-lesson': (ctx) => ctx.finishConvLesson(),
     'start-writing-mode': (ctx) => ctx.startWritingMode(),
