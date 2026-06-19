@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business English 10</title>
+  <style>
+    /* ==========================================================================
+       1. VARIABLES & RESET
+       ========================================================================== */
+    :root {
+      /* Colors */
+      --color-bg: #f8f9fa;
+      --color-surface: #ffffff;
+      --color-primary: #0056b3;
+      --color-primary-light: #e6f0fa;
+      --color-text: #212529;
+      --color-text-muted: #6c757d;
+      --color-shadow: rgba(0, 0, 0, 0.05);
+
+      /* Typography */
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      
+      /* Layout & Border */
+      --radius-round: 50px;
+      --radius-card: 16px;
+      --transition-base: all 0.2s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* ==========================================================================
+       2. LAYOUT (Mobile First Max-Width Container)
+       ========================================================================== */
+    .app-container {
+      width: 100%;
+      max-width: 480px; /* スマホ最適な幅に固定 */
+      background-color: var(--color-surface);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 24px 20px;
+      overflow-y: auto;
+      padding-bottom: 100px; /* 下部ステータスバーの余白 */
+    }
+
+    /* ==========================================================================
+       3. COMPONENTS
+       ========================================================================== */
+    /* Header */
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .brand-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .sub-title {
+      font-size: 1rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    /* Grid Layout for Cards */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* Feature Buttons (Cards) */
+    .btn-card {
+      background: var(--color-surface);
+      border: 1px solid #e9ecef;
+      border-radius: var(--radius-card);
+      padding: 20px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-base);
+      box-shadow: 0 4px 6px var(--color-shadow);
+    }
+
+    .btn-card:active {
+      transform: scale(0.98);
+      background-color: var(--color-bg);
+    }
+
+    /* Special CTA Button (Today's Lesson) */
+    .btn-card.primary {
+      grid-column: span 2; /* 横いっぱいに広げる */
+      background: var(--color-primary);
+      color: var(--color-surface);
+      border: none;
+      padding: 22px;
+      font-size: 1.1rem;
+    }
+
+    .btn-card.primary:active {
+      background-color: #004085;
+    }
+
+    /* Round Buttons (Settings etc.) */
+    .btn-round {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      background-color: var(--color-primary-light);
+      color: var(--color-primary);
+      border: none;
+      border-radius: var(--radius-round);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-base);
+    }
+
+    .btn-round:active {
+      background-color: #d0e3f7;
+    }
+
+    /* ==========================================================================
+       4. BOTTOM STATUS BAR
+       ========================================================================== */
+    .status-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background-color: var(--color-surface);
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 -4px 12px var(--color-shadow);
+    }
+
+    .status-item {
+      text-align: center;
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+    }
+
+    .status-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    /* ハイライト用のスタイル */
+    .status-value.highlight {
+      color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <main class="main-content">
+      
+      <header class="header">
+        <h1 class="brand-title">Business English 10</h1>
+        <p class="sub-title">今日も10分学習しましょう</p>
+      </header>
+
+      <div class="menu-grid" id="mainMenu">
+        <button class="btn-card primary" data-action="todays-lesson">
+          <span>Today's Lesson</span>
+        </button>
+        <button class="btn-card" data-action="vocabulary">
+          <span>Vocabulary</span>
+        </button>
+        <button class="btn-card" data-action="news">
+          <span>News</span>
+        </button>
+        <button class="btn-card" data-action="conversation">
+          <span>Conversation</span>
+        </button>
+        <button class="btn-card" data-action="writing">
+          <span>Writing</span>
+        </button>
+        <button class="btn-card" data-action="progress">
+          <span>Progress</span>
+        </button>
+      </div>
+
+      <footer class="menu-footer">
+        <button class="btn-round" data-action="settings">設定</button>
+      </footer>
+
+    </main>
+
+    <section class="status-bar">
+      <div class="status-item">
+        <span class="status-label">Today's Streak</span>
+        <span class="status-value highlight" id="streakValue">0 days</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Today's Score</span>
+        <span class="status-value" id="scoreValue">0 pts</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    /**
+     * アプリケーションのグローバル状態管理 (State)
+     */
+    const AppState = {
+      user: {
+        streak: 5, // ダミーデータ（本来はlocalStorageやAPIから取得）
+        score: 120
+      },
+      // 状態更新関数（UIへの反映を一元化するため）
+      updateStatusBar() {
+        document.getElementById('streakValue').textContent = `${this.user.streak} days`;
+        document.getElementById('scoreValue').textContent = `${this.user.score} pts`;
+      }
+    };
+
+    /**
+     * 各機能のコントローラー (将来の機能追加時はここを拡張)
+     */
+    const Actions = {
+      'todays-lesson': () => {
+        alert('Today\'s Lesson を開始します。');
+        // TODO: レッスン画面の描画処理などをここに実装
+      },
+      'vocabulary': () => {
+        alert('Vocabulary 画面へ移動します。');
+      },
+      'news': () => {
+        alert('News 項目を表示します。');
+      },
+      'conversation': () => {
+        alert('Conversation モードを起動します。');
+      },
+      'writing': () => {
+        alert('Writing 添削を開始します。');
+      },
+      'progress': () => {
+        alert('これまでの進捗グラフを表示します。');
+      },
+      'settings': () => {
+        alert('設定画面を開きます。');
+      }
+    };
+
+    /**
+     * アプリケーションの初期化
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. 初期ステータスの描画
+      AppState.updateStatusBar();
+
+      // 2. イベントリスナーの一括設定 (イベントデリゲーションによる効率化)
+      document.body.addEventListener('click', (event) => {
+        // クリックされた要素、またはその親要素から data-action を探す
+        const targetButton = event.target.closest('[data-action]');
+        if (!targetButton) return;
+
+        const actionName = targetButton.getAttribute('data-action');
+        
+        // 定義されたアクションがあれば実行
+        if (typeof Actions[actionName] === 'function') {
+          Actions[actionName]();
+        } else {
+          console.warn(`Action "${actionName}" is not defined.`);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
