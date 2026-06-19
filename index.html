@@ -9,84 +9,62 @@
        1. VARIABLES & RESET
        ========================================================================== */
     :root {
-      /* Colors */
       --color-bg: #f8f9fa;
       --color-surface: #ffffff;
       --color-primary: #0056b3;
       --color-primary-light: #e6f0fa;
+      --color-success: #28a745;
       --color-text: #212529;
       --color-text-muted: #6c757d;
+      --color-border: #e9ecef;
       --color-shadow: rgba(0, 0, 0, 0.05);
 
-      /* Typography */
-      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      
-      /* Layout & Border */
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --radius-round: 50px;
       --radius-card: 16px;
-      --transition-base: all 0.2s ease-in-out;
+      --transition-base: all 0.3s ease;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: var(--font-main);
       background-color: var(--color-bg);
       color: var(--color-text);
-      line-height: 1.6;
       display: flex;
       justify-content: center;
       min-height: 100vh;
     }
 
-    /* ==========================================================================
-       2. LAYOUT (Mobile First Max-Width Container)
-       ========================================================================== */
     .app-container {
       width: 100%;
-      max-width: 480px; /* スマホ最適な幅に固定 */
+      max-width: 480px;
       background-color: var(--color-surface);
       display: flex;
       flex-direction: column;
       position: relative;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
+      overflow: hidden;
     }
 
-    /* Main Content Area */
-    .main-content {
-      flex: 1;
-      padding: 24px 20px;
+    /* Screen Visibility */
+    .screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      padding: 24px 20px 100px 20px;
       overflow-y: auto;
-      padding-bottom: 100px; /* 下部ステータスバーの余白 */
     }
+
+    .screen.active { display: flex; }
 
     /* ==========================================================================
-       3. COMPONENTS
+       2. HOME SCREEN COMPONENTS
        ========================================================================== */
-    /* Header */
-    .header {
-      margin-bottom: 24px;
-    }
+    .header { margin-bottom: 24px; }
+    .brand-title { font-size: 1.8rem; font-weight: 800; color: var(--color-primary); }
+    .sub-title { color: var(--color-text-muted); font-weight: 500; }
 
-    .brand-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--color-primary);
-      letter-spacing: -0.5px;
-      margin-bottom: 4px;
-    }
-
-    .sub-title {
-      font-size: 1rem;
-      color: var(--color-text-muted);
-      font-weight: 500;
-    }
-
-    /* Grid Layout for Cards */
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -94,66 +72,153 @@
       margin-bottom: 24px;
     }
 
-    /* Feature Buttons (Cards) */
     .btn-card {
       background: var(--color-surface);
-      border: 1px solid #e9ecef;
+      border: 1px solid var(--color-border);
       border-radius: var(--radius-card);
       padding: 20px 16px;
       font-size: 1rem;
       font-weight: 600;
-      color: var(--color-text);
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
       transition: var(--transition-base);
       box-shadow: 0 4px 6px var(--color-shadow);
     }
 
-    .btn-card:active {
-      transform: scale(0.98);
-      background-color: var(--color-bg);
-    }
-
-    /* Special CTA Button (Today's Lesson) */
+    .btn-card:active { transform: scale(0.98); }
     .btn-card.primary {
-      grid-column: span 2; /* 横いっぱいに広げる */
+      grid-column: span 2;
       background: var(--color-primary);
-      color: var(--color-surface);
+      color: #fff;
       border: none;
-      padding: 22px;
-      font-size: 1.1rem;
     }
 
-    .btn-card.primary:active {
-      background-color: #004085;
-    }
-
-    /* Round Buttons (Settings etc.) */
     .btn-round {
-      display: flex;
-      align-items: center;
-      justify-content: center;
       width: 100%;
       padding: 14px;
       background-color: var(--color-primary-light);
       color: var(--color-primary);
       border: none;
       border-radius: var(--radius-round);
-      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: var(--transition-base);
-    }
-
-    .btn-round:active {
-      background-color: #d0e3f7;
     }
 
     /* ==========================================================================
-       4. BOTTOM STATUS BAR
+       3. LESSON SCREEN COMPONENTS
+       ========================================================================== */
+    .lesson-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--color-primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      background: var(--color-primary-light);
+      border-radius: 10px;
+      height: 8px;
+      width: 100%;
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: var(--color-primary);
+      height: 100%;
+      width: 0%; /* JSで制御 */
+      transition: width 0.4s ease;
+    }
+
+    /* Lesson List UI */
+    .lesson-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 16px;
+      border-radius: var(--radius-card);
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      transition: var(--transition-base);
+    }
+
+    /* Lesson States */
+    .lesson-item.active {
+      border-color: var(--color-primary);
+      background-color: #f0f7ff;
+      transform: translateX(5px);
+    }
+
+    .lesson-item.completed {
+      border-color: var(--color-success);
+      opacity: 0.8;
+    }
+
+    .lesson-item.completed .step-number {
+      background-color: var(--color-success);
+      color: white;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .lesson-info { flex: 1; }
+    .lesson-label { font-size: 0.75rem; color: var(--color-text-muted); display: block; }
+    .lesson-name { font-weight: 700; font-size: 1.1rem; }
+
+    /* Complete Button */
+    .btn-complete {
+      width: 100%;
+      padding: 18px;
+      border-radius: var(--radius-round);
+      border: none;
+      background-color: var(--color-border);
+      color: var(--color-text-muted);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: not-allowed;
+      transition: var(--transition-base);
+    }
+
+    .btn-complete.ready {
+      background-color: var(--color-success);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    /* ==========================================================================
+       4. STATUS BAR
        ========================================================================== */
     .status-bar {
       position: absolute;
@@ -162,154 +227,187 @@
       right: 0;
       height: 72px;
       background-color: var(--color-surface);
-      border-top: 1px solid #e9ecef;
+      border-top: 1px solid var(--color-border);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 0 16px;
-      box-shadow: 0 -4px 12px var(--color-shadow);
+      z-index: 10;
     }
 
-    .status-item {
-      text-align: center;
-    }
+    .status-item { text-align: center; }
+    .status-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; display: block; }
+    .status-value { font-size: 1.1rem; font-weight: 700; }
+    .status-value.highlight { color: var(--color-primary); }
 
-    .status-label {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      text-transform: uppercase;
-      font-weight: 700;
-      display: block;
-    }
-
-    .status-value {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--color-text);
-    }
-
-    /* ハイライト用のスタイル */
-    .status-value.highlight {
-      color: var(--color-primary);
-    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <main class="main-content">
-      
+    
+    <main id="homeScreen" class="screen active">
       <header class="header">
         <h1 class="brand-title">Business English 10</h1>
         <p class="sub-title">今日も10分学習しましょう</p>
       </header>
 
-      <div class="menu-grid" id="mainMenu">
-        <button class="btn-card primary" data-action="todays-lesson">
+      <div class="menu-grid">
+        <button class="btn-card primary" data-action="go-lesson">
           <span>Today's Lesson</span>
         </button>
-        <button class="btn-card" data-action="vocabulary">
-          <span>Vocabulary</span>
-        </button>
-        <button class="btn-card" data-action="news">
-          <span>News</span>
-        </button>
-        <button class="btn-card" data-action="conversation">
-          <span>Conversation</span>
-        </button>
-        <button class="btn-card" data-action="writing">
-          <span>Writing</span>
-        </button>
-        <button class="btn-card" data-action="progress">
-          <span>Progress</span>
-        </button>
+        <button class="btn-card" data-action="vocabulary"><span>Vocabulary</span></button>
+        <button class="btn-card" data-action="news"><span>News</span></button>
+        <button class="btn-card" data-action="conversation"><span>Conversation</span></button>
+        <button class="btn-card" data-action="writing"><span>Writing</span></button>
+        <button class="btn-card" data-action="progress"><span>Progress</span></button>
       </div>
 
-      <footer class="menu-footer">
+      <footer>
         <button class="btn-round" data-action="settings">設定</button>
       </footer>
+    </main>
 
+    <main id="lessonScreen" class="screen">
+      <header class="lesson-header">
+        <button class="btn-back" data-action="go-home">←</button>
+        <h2 class="lesson-title">Today's Lesson</h2>
+      </header>
+
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <div class="lesson-list" id="lessonList">
+        </div>
+
+      <button id="completeBtn" class="btn-complete" data-action="complete-lesson">Complete!</button>
     </main>
 
     <section class="status-bar">
       <div class="status-item">
         <span class="status-label">Today's Streak</span>
-        <span class="status-value highlight" id="streakValue">0 days</span>
+        <span class="status-value highlight" id="streakValue">5 days</span>
       </div>
       <div class="status-item">
         <span class="status-label">Today's Score</span>
-        <span class="status-value" id="scoreValue">0 pts</span>
+        <span class="status-value" id="scoreValue">120 pts</span>
       </div>
     </section>
   </div>
 
   <script>
     /**
-     * アプリケーションのグローバル状態管理 (State)
+     * アプリケーション設定とデータ
      */
-    const AppState = {
-      user: {
-        streak: 5, // ダミーデータ（本来はlocalStorageやAPIから取得）
-        score: 120
-      },
-      // 状態更新関数（UIへの反映を一元化するため）
-      updateStatusBar() {
-        document.getElementById('streakValue').textContent = `${this.user.streak} days`;
-        document.getElementById('scoreValue').textContent = `${this.user.score} pts`;
-      }
-    };
+    const LESSON_DATA = [
+      { id: 1, name: 'Vocabulary', type: 'Lesson 1' },
+      { id: 2, name: 'News', type: 'Lesson 2' },
+      { id: 3, name: 'Conversation', type: 'Lesson 3' },
+      { id: 4, name: 'Writing', type: 'Lesson 4' }
+    ];
 
-    /**
-     * 各機能のコントローラー (将来の機能追加時はここを拡張)
-     */
-    const Actions = {
-      'todays-lesson': () => {
-        alert('Today\'s Lesson を開始します。');
-        // TODO: レッスン画面の描画処理などをここに実装
+    const App = {
+      state: {
+        currentScreen: 'home',
+        currentLessonStep: 1, // 1〜4
+        isCompleted: false
       },
-      'vocabulary': () => {
-        alert('Vocabulary 画面へ移動します。');
-      },
-      'news': () => {
-        alert('News 項目を表示します。');
-      },
-      'conversation': () => {
-        alert('Conversation モードを起動します。');
-      },
-      'writing': () => {
-        alert('Writing 添削を開始します。');
-      },
-      'progress': () => {
-        alert('これまでの進捗グラフを表示します。');
-      },
-      'settings': () => {
-        alert('設定画面を開きます。');
-      }
-    };
 
-    /**
-     * アプリケーションの初期化
-     */
-    document.addEventListener('DOMContentLoaded', () => {
-      // 1. 初期ステータスの描画
-      AppState.updateStatusBar();
+      init() {
+        this.bindEvents();
+        this.renderLessonList();
+      },
 
-      // 2. イベントリスナーの一括設定 (イベントデリゲーションによる効率化)
-      document.body.addEventListener('click', (event) => {
-        // クリックされた要素、またはその親要素から data-action を探す
-        const targetButton = event.target.closest('[data-action]');
-        if (!targetButton) return;
+      bindEvents() {
+        document.body.addEventListener('click', (e) => {
+          const action = e.target.closest('[data-action]')?.dataset.action;
+          if (action && this.actions[action]) this.actions[action](this);
+        });
+      },
 
-        const actionName = targetButton.getAttribute('data-action');
+      // レッスンリストの動的生成
+      renderLessonList() {
+        const listContainer = document.getElementById('lessonList');
+        listContainer.innerHTML = LESSON_DATA.map(lesson => `
+          <div class="lesson-item" id="item-${lesson.id}" onclick="App.goToStep(${lesson.id})">
+            <div class="step-number">${lesson.id}</div>
+            <div class="lesson-info">
+              <span class="lesson-label">${lesson.type}</span>
+              <span class="lesson-name">${lesson.name}</span>
+            </div>
+          </div>
+        `).join('');
+        this.updateLessonUI();
+      },
+
+      // レッスンUIの更新（プログレスバー、カードの状態）
+      updateLessonUI() {
+        const { currentLessonStep } = this.state;
         
-        // 定義されたアクションがあれば実行
-        if (typeof Actions[actionName] === 'function') {
-          Actions[actionName]();
+        // プログレスバー更新 (1ステップ25%)
+        const progress = (currentLessonStep / LESSON_DATA.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+
+        // 各アイテムのクラス更新
+        LESSON_DATA.forEach(lesson => {
+          const el = document.getElementById(`item-${lesson.id}`);
+          el.classList.remove('active', 'completed');
+          
+          if (lesson.id < currentLessonStep) {
+            el.classList.add('completed');
+            el.querySelector('.step-number').innerHTML = '✓';
+          } else if (lesson.id === currentLessonStep) {
+            el.classList.add('active');
+            el.querySelector('.step-number').innerHTML = lesson.id;
+          } else {
+            el.querySelector('.step-number').innerHTML = lesson.id;
+          }
+        });
+
+        // Completeボタンの活性化チェック
+        const btn = document.getElementById('completeBtn');
+        if (currentLessonStep === LESSON_DATA.length) {
+          btn.classList.add('ready');
+          btn.disabled = false;
         } else {
-          console.warn(`Action "${actionName}" is not defined.`);
+          btn.classList.remove('ready');
+          btn.disabled = true;
         }
-      });
-    });
+      },
+
+      // 特定のステップに進む（デモ用）
+      goToStep(step) {
+        if (this.state.currentScreen !== 'lesson') return;
+        this.state.currentLessonStep = step;
+        this.updateLessonUI();
+      },
+
+      // スクリーン切り替え
+      switchScreen(screenName) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`${screenName}Screen`).classList.add('active');
+        this.state.currentScreen = screenName;
+      },
+
+      actions: {
+        'go-lesson': (ctx) => ctx.switchScreen('lesson'),
+        'go-home': (ctx) => ctx.switchScreen('home'),
+        'complete-lesson': (ctx) => {
+          alert('Congratulations! Lesson Completed!');
+          ctx.switchScreen('home');
+          // スコア加算などの処理をここに追加可能
+        },
+        'vocabulary': () => alert('Vocabulary Menu'),
+        'news': () => alert('News Menu'),
+        'conversation': () => alert('Conversation Menu'),
+        'writing': () => alert('Writing Menu'),
+        'progress': () => alert('Progress Menu'),
+        'settings': () => alert('Settings Menu')
+      }
+    };
+
+    // 初期化
+    App.init();
   </script>
 </body>
 </html>
