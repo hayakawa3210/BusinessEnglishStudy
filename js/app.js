@@ -44,6 +44,33 @@ const App = {
         if(el) el.value = savedKey;
       });
     }
+    // 💡 ここを追加！スピーカーボタンを押したら現在の単語を読み上げる
+    document.getElementById('btnPlayQuizAudio')?.addEventListener('click', () => {
+        const currentWord = document.getElementById('quizWord').textContent;
+        if (currentWord) {
+        this.speakEnglish(currentWord);
+        }
+    });
+    
+    // 端末の音声リストをあらかじめロードしておく（一部ブラウザのバグ対策）
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+    }    
+  },
+
+  // 英語のテキストを音声で読み上げる共通関数
+  speakEnglish(text) {
+    if (!('speechSynthesis' in window)) return;
+    
+    // 再生中の音声を一度停止してリセット
+    window.speechSynthesis.cancel();  
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US'; // アメリカ英語
+    utterance.rate = 0.9;     // 速度（少しゆっくり）  
+    const voices = window.speechSynthesis.getVoices();
+    const englishVoice = voices.find(v => v.lang.startsWith('en'));
+    if (englishVoice) utterance.voice = englishVoice;  
+    window.speechSynthesis.speak(utterance);
   },
 
   bindEvents() {
@@ -185,7 +212,6 @@ const App = {
   },
 
 async callGeminiAPI(apiKey, contents, isJson = false) {
-  // ⭕ モデル名を最新の「gemini-2.5-flash」に変更
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
   const config = isJson ? { responseMimeType: "application/json" } : {};
   
@@ -247,7 +273,9 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
     const selectedOptions = this.shuffle([currentQuiz.m, wrongOptions[0]?.m, wrongOptions[1]?.m, wrongOptions[2]?.m].filter(Boolean));
     document.getElementById('optionsContainer').innerHTML = selectedOptions.map(option => `<button class="btn-option" onclick="App.handleAnswer(this, '${option}')">${option}</button>`).join('');
     document.getElementById('resultBox').style.display = 'none'; document.getElementById('quizActions').style.display = 'none';
+    // this.speakEnglish(currentQuiz.w);
     document.getElementById('vocabNextBtn').textContent = this.state.currentQuizIndex === 19 ? '結果を見る' : '次へ';
+
   },
 
   handleAnswer(btnElement, val) {
@@ -426,6 +454,30 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
   },
 
   addGlobalScore(pts) { const el = document.getElementById('scoreValue'); el.textContent = `${parseInt(el.textContent) + pts} pts`; },
+
+// 🔊 英語のテキストを音声で読み上げる共通関数
+speakEnglish(text) {
+  // ブラウザが音声合成に対応しているかチェック
+  if (!('speechSynthesis' in window)) {
+    alert('お使いのブラウザは音声読み上げに対応していません。');
+    return;
+  }
+
+  // 再生中の音声を一度停止
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US'; // アメリカ英語に設定（イギリス英語なら 'en-GB'）
+  utterance.rate = 0.9;     // 読み上げ速度（0.8〜1.0 あたりが学習に最適）
+  utterance.pitch = 1.0;    // 声の高さ
+
+  // 端末で利用可能な英語の「ネイティブの女性/男性の声」を自動選択する設定
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoice = voices.find(v => v.lang.startsWith('en'));
+  if (englishVoice) utterance.voice = englishVoice;
+
+  window.speechSynthesis.speak(utterance);
+},
 
   actions: {
     'go-lesson': (ctx) => ctx.startTodayLessonWorkflow(),

@@ -66,14 +66,23 @@
       <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Vocabulary</h2></header>
       <div class="quiz-info" id="quizProgressInfo">Question 1 / 20</div>
       <div class="progress-container"><div id="vocabProgressBar" class="progress-bar"></div></div>
-      <div class="word-card"><div class="quiz-word" id="quizWord">---</div></div>
+      
+      <div class="word-card">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <div class="quiz-word" id="quizWord" style="margin: 0;">---</div>
+          <button id="btnPlayQuizAudio" class="btn-audio" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; padding: 5px; line-height: 1;">🔊</button>
+        </div>
+      </div>
+      
       <p class="quiz-instruction">意味を選んでください。</p>
       <div class="options-container" id="optionsContainer"></div>
+      
       <div class="result-box" id="resultBox">
         <div class="result-header" id="resultHeader">〇 正解</div>
         <div class="meta-row">発音記号: <span class="phonetic" id="quizPhonetic">/---/</span></div>
         <div class="sentence-box"><p class="sentence-en" id="quizSentenceEn">Example...</p><p class="sentence-ja" id="quizSentenceJa">訳...</p></div>
       </div>
+      
       <div class="quiz-actions" id="quizActions" style="display: none;">
         <button class="btn-retry" data-action="vocab-retry">再挑戦</button>
         <button class="btn-next" id="vocabNextBtn" data-action="vocab-next">次へ</button>
