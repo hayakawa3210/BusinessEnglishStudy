@@ -184,17 +184,21 @@ const App = {
     }).join('');
   },
 
-  async callGeminiAPI(apiKey, contents, isJson = false) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const config = isJson ? { responseMimeType: "application/json" } : {};
-    const response = await fetch(url, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: contents, generationConfig: config })
-    });
-    if (!response.ok) throw new Error('API request failed');
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
-  },
+async callGeminiAPI(apiKey, contents, isJson = false) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+  const config = isJson ? { responseMimeType: "application/json" } : {};
+  const response = await fetch(url, {
+    method: 'POST', 
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey // 新しい認証ルールに対応
+    },
+    body: JSON.stringify({ contents: contents, generationConfig: config })
+  });
+  if (!response.ok) throw new Error('API request failed');
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+},
 
   startTodayLessonWorkflow() { this.state.lessonStartTime = new Date(); this.switchScreen('lesson'); },
   renderLessonList() {
