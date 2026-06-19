@@ -185,17 +185,19 @@ const App = {
   },
 
 async callGeminiAPI(apiKey, contents, isJson = false) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
-  const config = isJson ? { responseMimeType: "application/json" } : {};
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
     method: 'POST', 
     headers: { 
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey // 新しい認証ルールに対応
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ contents: contents, generationConfig: config })
+    body: JSON.stringify({ contents: contents })
   });
-  if (!response.ok) throw new Error('API request failed');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    const errorMsg = errorData.error?.message || errorData.message || 'API request failed';
+    throw new Error(`API Error (${response.status}): ${errorMsg}`);
+  }
   const data = await response.json();
   return data.candidates[0].content.parts[0].text;
 },
@@ -278,7 +280,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
       this.state.newsData = JSON.parse(jsonText); this.state.currentNewsQuizIndex = 0; this.state.todayNews++;
       this.renderNewsContent();
     } catch (e) {
-      alert('ニュース取得エラー'); document.getElementById('apiKeyBlock').style.display = 'flex'; document.getElementById('newsLoader').style.display = 'none';
+      alert(`ニュース取得エラー:\n${e.message}`); document.getElementById('apiKeyBlock').style.display = 'flex'; document.getElementById('newsLoader').style.display = 'none';
     }
   },
 
@@ -327,7 +329,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
       this.state.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
       this.appendChatBubble(aiResponse, 'ai'); this.appendChatBubble('第1往復 / 全5回', 'system');
     } catch(e) {
-      alert('講師の起動に失敗。'); document.getElementById('convApiKeyBlock').style.display = 'flex'; document.getElementById('convLoader').style.display = 'none';
+      alert(`講師の起動に失敗:\n${e.message}`); document.getElementById('convApiKeyBlock').style.display = 'flex'; document.getElementById('convLoader').style.display = 'none';
     }
   },
 
@@ -377,7 +379,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
         document.getElementById('fbExample').textContent = fb.better_examples;
         document.getElementById('convFeedbackArea').style.display = 'flex';
       }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error(e); alert(`エラー:\n${e.message}`); }
     finally { document.getElementById('chatSendBtn').disabled = false; inputEl.disabled = false; if(this.state.isChatActive) inputEl.focus(); }
   },
 
@@ -409,7 +411,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
 
       document.getElementById('writingLoader').style.display = 'none'; document.getElementById('writingFeedbackArea').style.display = 'flex';
     } catch(e) {
-      alert('添削エラー'); document.getElementById('writingLoader').style.display = 'none'; document.getElementById('writingArea').style.display = 'flex';
+      alert(`添削エラー:\n${e.message}`); document.getElementById('writingLoader').style.display = 'none'; document.getElementById('writingArea').style.display = 'flex';
     }
   },
 
