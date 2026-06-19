@@ -185,10 +185,10 @@ const App = {
   },
 
 async callGeminiAPI(apiKey, contents, isJson = false) {
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
-    method: 'POST', 
-    headers: { 
+    method: 'POST',
+    headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ contents: contents })
@@ -199,7 +199,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
     throw new Error(`API Error (${response.status}): ${errorMsg}`);
   }
   const data = await response.json();
-  return data.candidates[0].content.parts[0].text;
+  return data.candidates?.[0]?.content?.[0]?.text || data.text || '';
 },
 
   startTodayLessonWorkflow() { this.state.lessonStartTime = new Date(); this.switchScreen('lesson'); },
