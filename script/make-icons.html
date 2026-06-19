@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PWA Icon Generator</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f8f9fa;
+      gap: 20px;
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: white;
+      background-color: #0056b3;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background-color: #004085;
+    }
+    canvas {
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      background: #fff;
+      display: none; /* 画面には表示せずダウンロード用に使用 */
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Business English 10 <br>PWAアイコンジェネレーター</h1>
+  <p>下のボタンを押すと、それぞれのサイズのPNG画像がダウンロードされます。</p>
+
+  <button class="btn" onclick="generateIcon(192, 'icon-192.png')">192x192 アイコンをダウンロード</button>
+  <button class="btn" onclick="generateIcon(512, 'icon-512.png')">512x512 アイコンをダウンロード</button>
+
+  <canvas id="iconCanvas"></canvas>
+
+  <script>
+    function generateIcon(size, filename) {
+      const canvas = document.getElementById('iconCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // サイズを設定
+      canvas.width = size;
+      canvas.height = size;
+
+      // 1. 背景のグラデーション (濃いビジネスブルー)
+      const gradient = ctx.createLinearGradient(0, 0, 0, size);
+      gradient.addColorStop(0, '#0056b3');
+      gradient.addColorStop(1, '#002d62');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      // 2. 装飾用の円（うっすらとした背景模様）
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.beginPath();
+      ctx.arc(size * 0.2, size * 0.2, size * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. テキスト「B10」の描画
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // サイズに応じてフォントサイズを可変
+      ctx.font = `bold ${size * 0.35}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      
+      // 影をつけて少しリッチに
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = size * 0.04;
+      ctx.shadowOffsetX = size * 0.02;
+      ctx.shadowOffsetY = size * 0.02;
+
+      // 中央に文字を配置
+      ctx.fillText('B10', size / 2, size / 2);
+
+      // 4. ダウンロード処理
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
