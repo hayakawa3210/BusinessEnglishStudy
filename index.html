@@ -60,9 +60,9 @@
     .screen.active { display: flex; }
 
     /* Common Components */
-    .screen-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .screen-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-shrink: 0; }
     .btn-back { background: none; border: none; color: var(--color-primary); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; }
-    .progress-container { background: var(--color-primary-light); border-radius: 10px; height: 8px; width: 100%; margin-bottom: 24px; overflow: hidden; }
+    .progress-container { background: var(--color-primary-light); border-radius: 10px; height: 8px; width: 100%; margin-bottom: 24px; overflow: hidden; flex-shrink: 0; }
     .progress-bar { background: var(--color-primary); height: 100%; width: 0%; transition: width 0.3s ease; }
 
     /* ==========================================================================
@@ -93,68 +93,44 @@
     .btn-complete.ready { background-color: var(--color-success); color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3); }
 
     /* ==========================================================================
-       4. VOCABULARY SCREEN
+       4. CHAT UI COMPONENTS (CONVERSATION SCREEN)
        ========================================================================== */
-    .quiz-info { font-size: 0.9rem; color: var(--color-text-muted); font-weight: 600; margin-bottom: 4px; }
-    .word-card { background: var(--color-bg); border-radius: var(--radius-card); padding: 32px 20px; text-align: center; margin-bottom: 20px; }
-    .quiz-word { font-size: 2.2rem; font-weight: 800; color: var(--color-primary); letter-spacing: -0.5px; }
-    .quiz-instruction { text-align: center; font-size: 0.95rem; color: var(--color-text-muted); margin-bottom: 16px; font-weight: 500; }
-    .options-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-    .btn-option { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-round); padding: 16px 24px; font-size: 1rem; font-weight: 500; text-align: left; cursor: pointer; transition: var(--transition-base); }
-    .btn-option.correct { background-color: #d4edda; border-color: var(--color-success); color: #155724; font-weight: 700; }
-    .btn-option.wrong { background-color: #f8d7da; border-color: var(--color-danger); color: #721c24; opacity: 0.7; }
-    .btn-option:disabled { pointer-events: none; }
-    .result-box { display: none; background: #fff; border: 2px solid var(--color-border); border-radius: var(--radius-card); padding: 20px; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .result-header { display: flex; align-items: center; gap: 10px; font-size: 1.4rem; font-weight: 800; margin-bottom: 12px; }
-    .result-header.correct { color: var(--color-success); }
-    .result-header.wrong { color: var(--color-danger); }
-    .meta-row { font-size: 0.95rem; margin-bottom: 8px; color: var(--color-text-muted); }
-    .phonetic { font-family: monospace; background: var(--color-bg); padding: 2px 6px; border-radius: 4px; color: var(--color-text); }
-    .sentence-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--color-border); font-size: 0.95rem; }
-    .sentence-en { font-weight: 600; color: var(--color-text); margin-bottom: 4px; }
-    .sentence-ja { color: var(--color-text-muted); }
-    .quiz-actions { display: flex; gap: 12px; }
-    .quiz-actions button { flex: 1; padding: 14px; border-radius: var(--radius-round); font-weight: 700; font-size: 1rem; cursor: pointer; border: none; }
-    .btn-retry { background: var(--color-primary-light); color: var(--color-primary); }
-    .btn-next { background: var(--color-primary); color: #fff; }
+    .chat-container { display: flex; flex-direction: column; flex: 1; min-height: 0; background: #f1f3f5; border-radius: var(--radius-card); overflow: hidden; position: relative; }
+    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    
+    /* Bubble Base Styles */
+    .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; animation: fadeIn 0.25s ease; }
+    .chat-bubble.ai { background-color: var(--color-primary); color: white; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .chat-bubble.user { background-color: var(--color-surface); color: var(--color-text); align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 2px 4px var(--color-shadow); }
+    .chat-bubble.system { background-color: transparent; color: var(--color-text-muted); font-size: 0.8rem; text-align: center; align-self: center; max-width: 100%; font-weight: 600; }
+    
+    /* Input Area */
+    .chat-input-bar { display: flex; gap: 8px; padding: 10px; background: var(--color-surface); border-top: 1px solid var(--color-border); align-items: center; }
+    .chat-input-field { flex: 1; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-round); font-size: 0.95rem; outline: none; transition: var(--transition-base); }
+    .chat-input-field:focus { border-color: var(--color-primary); }
+    .btn-send { background: var(--color-primary); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
+    .btn-send:disabled { background: var(--color-border); cursor: not-allowed; }
 
-    /* ==========================================================================
-       5. BUSINESS NEWS SCREEN (Gemini Integration)
-       ========================================================================== */
-    .news-meta-badge { display: inline-flex; gap: 8px; margin-bottom: 16px; }
-    .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
-    .badge.difficulty { background-color: var(--color-primary-light); color: var(--color-primary); }
-    .badge.toeic { background-color: #e2f0d9; color: #385723; }
-    
-    .news-article-card { background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 12px var(--color-shadow); }
-    .news-title { font-size: 1.3rem; font-weight: 800; line-height: 1.4; color: #111; margin-bottom: 12px; }
-    .news-text-en { font-size: 1rem; line-height: 1.7; color: var(--color-text); margin-bottom: 20px; text-align: justify; }
-    
-    .section-divider-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 1px; margin-bottom: 10px; border-left: 4px solid var(--color-primary); padding-left: 8px; }
-    .news-summary-ja { font-size: 0.95rem; line-height: 1.6; color: #333; background: var(--color-bg); padding: 14px; border-radius: 8px; margin-bottom: 24px; }
-    
-    .vocab-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-    .vocab-row-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.95rem; }
-    .vocab-word-bold { font-weight: 700; color: var(--color-primary); }
-    
-    .news-quiz-section { background: #fdfdfd; border: 1px dashed var(--color-primary); padding: 16px; border-radius: var(--radius-card); margin-bottom: 24px; }
-    .news-quiz-box { display: none; }
-    .news-quiz-box.active { display: block; animation: fadeIn 0.3s ease; }
-    .news-quiz-q { font-weight: 700; font-size: 1rem; margin-bottom: 14px; color: var(--color-text); }
-    
+    /* Feedback Cards */
+    .feedback-section { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+    .feedback-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 16px; box-shadow: 0 4px 10px var(--color-shadow); }
+    .feedback-title { font-size: 1rem; font-weight: 700; color: var(--color-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .feedback-body { font-size: 0.95rem; line-height: 1.6; color: #333; white-space: pre-line; }
+
+    /* Reuse News styles for Global Overlay API */
     .api-key-overlay { display: flex; flex-direction: column; gap: 12px; background: #fff; border: 1px solid var(--color-border); padding: 20px; border-radius: var(--radius-card); margin-bottom: 20px; }
     .api-input { width: 100%; padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.9rem; }
-    .loader-box { display: none; text-align: center; padding: 40px 0; color: var(--color-text-muted); font-weight: 600; }
+    .loader-box { display: none; text-align: center; padding: 20px 0; color: var(--color-text-muted); font-weight: 600; }
 
     /* ==========================================================================
-       6. STATUS BAR
+       5. STATUS BAR
        ========================================================================== */
     .status-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background-color: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
     .status-item { text-align: center; }
     .status-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; display: block; }
     .status-value { font-size: 1.1rem; font-weight: 700; }
     .status-value.highlight { color: var(--color-primary); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -168,9 +144,9 @@
       </header>
       <div class="menu-grid">
         <button class="btn-card primary" data-action="go-lesson"><span>Today's Lesson</span></button>
-        <button class="btn-card" data-action="go-vocab"><span>Vocabulary</span></button>
-        <button class="btn-card" data-action="go-news"><span>News</span></button>
-        <button class="btn-card" data-action="conversation"><span>Conversation</span></button>
+        <button class="btn-card" data-action="vocabulary"><span>Vocabulary</span></button>
+        <button class="btn-card" data-action="news"><span>News</span></button>
+        <button class="btn-card" data-action="go-conv"><span>Conversation</span></button>
         <button class="btn-card" data-action="writing"><span>Writing</span></button>
         <button class="btn-card" data-action="progress"><span>Progress</span></button>
       </div>
@@ -184,57 +160,34 @@
       <button id="completeBtn" class="btn-complete" data-action="complete-lesson">Complete!</button>
     </main>
 
-    <main id="vocabScreen" class="screen">
-      <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Vocabulary</h2></header>
-      <div class="quiz-info" id="quizProgressInfo">Question 1 / 20</div>
-      <div class="progress-container"><div id="vocabProgressBar" class="progress-bar"></div></div>
-      <div class="word-card"><div class="quiz-word" id="quizWord">---</div></div>
-      <p class="quiz-instruction">意味を選んでください。</p>
-      <div class="options-container" id="optionsContainer"></div>
-      <div class="result-box" id="resultBox">
-        <div class="result-header" id="resultHeader">〇 正解</div>
-        <div class="meta-row">発音記号: <span class="phonetic" id="quizPhonetic">/---/</span></div>
-        <div class="sentence-box"><p class="sentence-en" id="quizSentenceEn">Example...</p><p class="sentence-ja" id="quizSentenceJa">訳...</p></div>
-      </div>
-      <div class="quiz-actions" id="quizActions" style="display: none;">
-        <button class="btn-retry" data-action="vocab-retry">再挑戦</button>
-        <button class="btn-next" id="vocabNextBtn" data-action="vocab-next">次へ</button>
-      </div>
-    </main>
-
-    <main id="newsScreen" class="screen">
-      <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Business News</h2></header>
+    <main id="convScreen" class="screen">
+      <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Business Conversation</h2></header>
       
-      <div class="api-key-overlay" id="apiKeyBlock">
-        <p style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted);">Gemini APIキーを入力してニュースを取得します：</p>
-        <input type="password" id="apiKeyInput" class="api-input" placeholder="AIzaSy...">
-        <button class="btn-round" data-action="fetch-news-api">ニュースを生成・取得</button>
+      <div class="api-key-overlay" id="convApiKeyBlock">
+        <p style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted);">Gemini APIキーを入力して会話を開始します：</p>
+        <input type="password" id="convApiKeyInput" class="api-input" placeholder="AIzaSy...">
+        <button class="btn-round" data-action="start-chat-api">会話レッスンを開始</button>
       </div>
 
-      <div class="loader-box" id="newsLoader">AIが最新ビジネスニュースを生成中...🕒</div>
+      <div class="loader-box" id="convLoader">講師が挨拶を準備中...💬</div>
 
-      <div id="newsContentBody" style="display: none;">
-        <div class="news-meta-badge">
-          <span class="badge difficulty" id="newsDiff">Level: Intermediate</span>
-          <span class="badge toeic" id="newsToeic">TOEIC: 700+</span>
+      <div class="chat-container" id="chatWrapper" style="display: none; height: 360px;">
+        <div class="chat-messages" id="chatMessages">
+          </div>
+        
+        <div class="chat-input-bar" id="chatInputBar">
+          <input type="text" id="chatInputField" class="chat-input-field" placeholder="Type your English response...">
+          <button class="btn-send" id="chatSendBtn" data-action="send-chat-msg">→</button>
         </div>
+      </div>
 
-        <div class="news-article-card">
-          <h3 class="news-title" id="newsTitleEn">Loading Title...</h3>
-          <p class="news-text-en" id="newsBodyEn">Loading Body...</p>
-        </div>
-
-        <h4 class="section-divider-title">日本語要約</h4>
-        <div class="news-summary-ja" id="newsSummaryJa">要約データ...</div>
-
-        <h4 class="section-divider-title">重要ビジネス単語 (5個)</h4>
-        <div class="vocab-list" id="newsVocabList"></div>
-
-        <h4 class="section-divider-title">内容理解クイズ (全3問)</h4>
-        <div class="news-quiz-section">
-          <div class="quiz-info" id="newsQuizNumber">Question 1 / 3</div>
-          <div id="newsQuizContainer"></div>
-        </div>
+      <div class="feedback-section" id="convFeedbackArea" style="display: none;">
+        <h3 class="section-divider-title" style="border-left:4px solid var(--color-success); padding-left:8px; font-size:1.1rem; font-weight:800; margin-top:16px;">Lesson Feedback</h3>
+        <div class="feedback-card"><div class="feedback-title">🔊 発音のポイント (Pronunciation)</div><div class="feedback-body" id="fbPron"></div></div>
+        <div class="feedback-card"><div class="feedback-title">📝 文法の修正 (Grammar)</div><div class="feedback-body" id="fbGrammar"></div></div>
+        <div class="feedback-card"><div class="feedback-title">💡 自然なビジネス表現 (Naturalness)</div><div class="feedback-body" id="fbNatural"></div></div>
+        <div class="feedback-card"><div class="feedback-title">🚀 おすすめの改善例 (Better Examples)</div><div class="feedback-body" id="fbExample"></div></div>
+        <button class="btn-round" style="background: var(--color-success); color:#fff; margin-top:12px;" data-action="finish-conv-lesson">結果をセーブして戻る</button>
       </div>
     </main>
 
@@ -245,15 +198,6 @@
   </div>
 
   <script>
-    // 既存データ定義
-    const VOCABULARY_POOL = [
-      { w: 'agenda', m: '協議事項、議題', p: '/əˈdʒen.də/', e: 'What is on the agenda for today’s meeting?', j: '今日の会議の議題は何ですか？' },
-      { w: 'allocate', m: '配分する、割り当てる', p: '/ˈæl.ə.keɪt/', e: 'We need to allocate resources efficiently.', j: '私たちは資源を効率的に配分する必要がある。' },
-      { w: 'collaborate', m: '共同で働く、協力する', p: '/kəˈlæb.ə.reɪt/', e: 'Let’s collaborate on this new project.', j: 'この新しいプロジェクトで協力しましょう。' },
-      { w: 'comply', m: '従う、順守する', p: '/kəmˈplaɪ/', e: 'All products must comply with safety standards.', j: 'すべての製品は安全基準を順守しなければならない。' },
-      { w: 'negotiate', m: '交渉する', p: '/nəˈɡoʊ.ʃi.eɪt/', e: 'She managed to negotiate a better contract.', j: '彼女はより良い契約を交渉で勝ち取った。' }
-    ];
-
     const LESSON_STEPS = [
       { id: 1, name: 'Vocabulary', type: 'Lesson 1' },
       { id: 2, name: 'News', type: 'Lesson 2' },
@@ -265,18 +209,18 @@
       state: {
         currentScreen: 'home',
         currentLessonStep: 1,
-        // Vocabulary State
-        quizList: [], currentQuizIndex: 0, hasAnswered: false, scoreIncrement: 0,
-        // News State
-        newsData: null, currentNewsQuizIndex: 0
+        // Chat / Conv State
+        chatTurnCount: 0, // ユーザーのターン数 (最大5回)
+        chatHistory: [],  // API送信用コンテキストスタック
+        isChatActive: true
       },
 
       init() {
         this.bindEvents();
         this.renderLessonList();
-        // ローカルストレージにAPIキーがあれば自動セット
-        if(localStorage.getItem('gemini_key')) {
-          document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_key');
+        const savedKey = localStorage.getItem('gemini_key');
+        if(savedKey) {
+          document.getElementById('convApiKeyInput').value = savedKey;
         }
       },
 
@@ -284,6 +228,12 @@
         document.body.addEventListener('click', (e) => {
           const action = e.target.closest('[data-action]')?.dataset.action;
           if (action && this.actions[action]) this.actions[action](this);
+        });
+        // チャット入力欄でのEnterキー対応
+        document.getElementById('chatInputField').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && !document.getElementById('chatSendBtn').disabled) {
+            this.handleUserSendMessage();
+          }
         });
       },
 
@@ -293,17 +243,6 @@
         this.state.currentScreen = screenName;
       },
 
-      shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-      },
-
-      /* ==========================================================================
-         LESSON SYSTEM
-         ========================================================================== */
       renderLessonList() {
         document.getElementById('lessonList').innerHTML = LESSON_STEPS.map(lesson => `
           <div class="lesson-item" id="item-${lesson.id}">
@@ -330,149 +269,148 @@
       },
 
       /* ==========================================================================
-         VOCABULARY SYSTEM
+         GEMINI CONVERSATION SYSTEM (Lesson 3)
          ========================================================================== */
-      startVocabulary() {
-        this.state.quizList = this.shuffle([...VOCABULARY_POOL]).slice(0, 20);
-        this.state.currentQuizIndex = 0; this.state.scoreIncrement = 0;
-        this.switchScreen('vocab'); this.loadQuiz();
-      },
-
-      loadQuiz() {
-        this.state.hasAnswered = false;
-        const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
-        if(!currentQuiz) return;
-        document.getElementById('quizProgressInfo').textContent = `Question ${this.state.currentQuizIndex + 1} / 20`;
-        document.getElementById('vocabProgressBar').style.width = `${(this.state.currentQuizIndex / 20) * 100}%`;
-        document.getElementById('quizWord').textContent = currentQuiz.w;
-        const wrongOptions = VOCABULARY_POOL.filter(v => v.w !== currentQuiz.w);
-        const selectedOptions = this.shuffle([currentQuiz.m, wrongOptions[0]?.m, wrongOptions[1]?.m, wrongOptions[2]?.m].filter(Boolean));
-        document.getElementById('optionsContainer').innerHTML = selectedOptions.map(option => `<button class="btn-option" onclick="App.handleAnswer(this, '${option}')">${option}</button>`).join('');
-        document.getElementById('resultBox').style.display = 'none';
-        document.getElementById('quizActions').style.display = 'none';
-        document.getElementById('vocabNextBtn').textContent = this.state.currentQuizIndex === 19 ? '結果を見る' : '次へ';
-      },
-
-      handleAnswer(btnElement, val) {
-        if (this.state.hasAnswered) return; this.state.hasAnswered = true;
-        const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
-        const isCorrect = val === currentQuiz.m;
-        document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
-        if (isCorrect) { btnElement.classList.add('correct'); document.getElementById('resultHeader').innerHTML = '〇 正解'; document.getElementById('resultHeader').className = 'result-header correct'; this.state.scoreIncrement += 10; }
-        else { btnElement.classList.add('wrong'); document.getElementById('resultHeader').innerHTML = '× 不正解'; document.getElementById('resultHeader').className = 'result-header wrong'; document.querySelectorAll('.btn-option').forEach(b => { if(b.textContent === currentQuiz.m) b.classList.add('correct'); }); }
-        document.getElementById('quizPhonetic').textContent = currentQuiz.p; document.getElementById('quizSentenceEn').textContent = currentQuiz.e; document.getElementById('quizSentenceJa').textContent = currentQuiz.j;
-        document.getElementById('resultBox').style.display = 'block'; document.getElementById('quizActions').style.display = 'flex';
-      },
-
-      /* ==========================================================================
-         GEMINI API INTEGRATION (NEWS SYSTEM)
-         ========================================================================== */
-      async fetchBusinessNews(apiKey) {
+      async callGeminiAPI(apiKey, contents, isJson = false) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const config = isJson ? { responseMimeType: "application/json" } : {};
         
-        // 生成AIにJSON出力を保証させる厳格なシステムプロンプト
-        const promptText = "Generate one short English business news article suitable for study. Output strictly in JSON format matching this schema: { 'title': 'English Title', 'body': 'English news body text (about 3-4 sentences)', 'summary_ja': 'Detailed Japanese summary', 'difficulty': 'Easy/Intermediate/Advanced', 'toeic': 'TOEIC target score (e.g. 600+, 800+)', 'words': [ {'word': 'word1', 'meaning': 'meaning1'}, {'word': 'word2', 'meaning': 'meaning2'}, {'word': 'word3', 'meaning': 'meaning3'}, {'word': 'word4', 'meaning': 'meaning4'}, {'word': 'word5', 'meaning': 'meaning5'} ], 'quizzes': [ {'question': 'English comprehension question?', 'options': ['A', 'B', 'C', 'D'], 'answer': 'Correct option exactly matching'}, {'question': 'Q2?', 'options': ['A','B','C','D'], 'answer': 'Correct'}, {'question': 'Q3?', 'options': ['A','B','C','D'], 'answer': 'Correct'} ] }";
-
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
+          body: JSON.stringify({ contents: contents, generationConfig: config })
         });
-
         if (!response.ok) throw new Error('API request failed');
         const data = await response.json();
-        const jsonText = data.candidates[0].content.parts[0].text;
-        return JSON.parse(jsonText);
+        return data.candidates[0].content.parts[0].text;
       },
 
-      async handleNewsGeneration() {
-        const key = document.getElementById('apiKeyInput').value.trim();
+      async startConversationLesson() {
+        const key = document.getElementById('convApiKeyInput').value.trim();
         if(!key) return alert('APIキーを入力してください');
-        localStorage.setItem('gemini_key', key); // キーをローカルに一時保存
+        localStorage.setItem('gemini_key', key);
 
-        document.getElementById('apiKeyBlock').style.display = 'none';
-        document.getElementById('newsLoader').style.display = 'block';
+        document.getElementById('convApiKeyBlock').style.display = 'none';
+        document.getElementById('convLoader').style.display = 'block';
+
+        // チャット初期化
+        this.state.chatTurnCount = 0;
+        this.state.chatHistory = [];
+        this.state.isChatActive = true;
+        document.getElementById('chatMessages').innerHTML = '';
+        document.getElementById('convFeedbackArea').style.display = 'none';
+        document.getElementById('chatInputBar').style.display = 'flex';
+
+        // 最初のプロンプト（講師の最初の挨拶生成）
+        const systemInitPrompt = {
+          role: "user",
+          parts: [{ text: "You are an elite, supportive business English teacher. Start a realistic business chat conversation (e.g., small talk at an office, project kickoff, table manners, meeting client) suitable for a TOEIC 600 level student. Speak only 1-2 simple, professional sentences. Ask one clear question at the end to prompt the student. Speak ONLY in English." }]
+        };
 
         try {
-          const result = await this.fetchBusinessNews(key);
-          this.state.newsData = result;
-          this.state.currentNewsQuizIndex = 0;
-          this.renderNewsContent();
-        } catch (e) {
-          alert('ニュースの取得に失敗しました。APIキーが正しいか確認してください。');
-          document.getElementById('apiKeyBlock').style.display = 'flex';
-          document.getElementById('newsLoader').style.display = 'none';
+          const aiResponse = await this.callGeminiAPI(key, [systemInitPrompt]);
+          document.getElementById('convLoader').style.display = 'none';
+          document.getElementById('chatWrapper').style.display = 'flex';
+          
+          // チャット履歴に初期化として保存
+          this.state.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+          this.appendChatBubble(aiResponse, 'ai');
+          this.appendChatBubble('第1ターン (全5往復)', 'system');
+        } catch(e) {
+          alert('講師の起動に失敗しました。キーを確認してください。');
+          document.getElementById('convApiKeyBlock').style.display = 'flex';
+          document.getElementById('convLoader').style.display = 'none';
         }
       },
 
-      renderNewsContent() {
-        const data = this.state.newsData;
-        document.getElementById('newsLoader').style.display = 'none';
-        document.getElementById('newsContentBody').style.display = 'block';
-
-        // メタ・本文の反映
-        document.getElementById('newsDiff').textContent = `Level: ${data.difficulty}`;
-        document.getElementById('newsToeic').textContent = `TOEIC: ${data.toeic}`;
-        document.getElementById('newsTitleEn').textContent = data.title;
-        document.getElementById('newsBodyEn').textContent = data.body;
-        document.getElementById('newsSummaryJa').textContent = data.summary_ja;
-
-        // 単語5つの描画
-        document.getElementById('newsVocabList').innerHTML = data.words.map(w => `
-          <div class="vocab-row-item">
-            <span class="vocab-word-bold">${w.word}</span>
-            <span>${w.meaning}</span>
-          </div>
-        `).join('');
-
-        // クイズの描画開始
-        this.loadNewsQuiz();
+      appendChatBubble(text, sender) {
+        const msgContainer = document.getElementById('chatMessages');
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${sender}`;
+        bubble.textContent = text;
+        msgContainer.appendChild(bubble);
+        this.scrollToBottom();
       },
 
-      loadNewsQuiz() {
-        const quizData = this.state.newsData.quizzes[this.state.currentNewsQuizIndex];
-        document.getElementById('newsQuizNumber').textContent = `Question ${this.state.currentNewsQuizIndex + 1} / 3`;
-        
-        const container = document.getElementById('newsQuizContainer');
-        container.innerHTML = `
-          <div class="news-quiz-box active">
-            <p class="news-quiz-q">${quizData.question}</p>
-            <div class="options-container">
-              ${quizData.options.map(opt => `<button class="btn-option" onclick="App.handleNewsQuizAnswer(this, '${opt}', '${quizData.answer}')">${opt}</button>`).join('')}
-            </div>
-          </div>
-        `;
+      scrollToBottom() {
+        const msgContainer = document.getElementById('chatMessages');
+        msgContainer.scrollTop = msgContainer.scrollHeight;
       },
 
-      handleNewsQuizAnswer(btn, selected, correct) {
-        document.querySelectorAll('.news-quiz-section .btn-option').forEach(b => b.disabled = true);
-        const isCorrect = selected === correct;
-        
-        if(isCorrect) {
-          btn.classList.add('correct');
-          // スコア加算
-          const currentScoreEl = document.getElementById('scoreValue');
-          currentScoreEl.textContent = `${parseInt(currentScoreEl.textContent) + 20} pts`;
-        } else {
-          btn.classList.add('wrong');
-          document.querySelectorAll('.news-quiz-section .btn-option').forEach(b => { if(b.textContent === correct) b.classList.add('correct'); });
-        }
+      async handleUserSendMessage() {
+        if(!this.state.isChatActive) return;
+        const inputEl = document.getElementById('chatInputField');
+        const userText = inputEl.value.trim();
+        if(!userText) return;
 
-        // 1.5秒後に自動で次へ進むか、終了処理
-        setTimeout(() => {
-          if(this.state.currentNewsQuizIndex < 2) {
-            this.state.currentNewsQuizIndex++;
-            this.loadNewsQuiz();
+        inputEl.value = '';
+        this.state.chatTurnCount++;
+        this.appendChatBubble(userText, 'user');
+        
+        // 履歴に追加
+        this.state.chatHistory.push({ role: "user", parts: [{ text: userText }] });
+
+        // 送信ボタンとインプットをローディング中無効化
+        const sendBtn = document.getElementById('chatSendBtn');
+        sendBtn.disabled = true;
+        inputEl.disabled = true;
+
+        const key = localStorage.getItem('gemini_key');
+
+        try {
+          if (this.state.chatTurnCount < 5) {
+            // --- 通常の会話ターン内 ---
+            const promptContext = [
+              { role: "user", parts: [{ text: "Context: You are a friendly Business English coach. Keep conversation at TOEIC 600 level. Reply naturally to the student's text in 1-2 sentences and ask a follow-up question. Do not evaluate yet. Speak ONLY in English." }] },
+              ...this.state.chatHistory
+            ];
+            
+            const aiResponse = await this.callGeminiAPI(key, promptContext);
+            this.state.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+            this.appendChatBubble(aiResponse, 'ai');
+            this.appendChatBubble(`第${this.state.chatTurnCount + 1}ターン (全5往復)`, 'system');
+
           } else {
-            alert('News学習完了！スコアが保存されました。');
-            this.state.currentLessonStep = 3; // Lesson 2(News) 完了 -> 次はConversation
-            this.renderLessonList();
-            this.switchScreen('lesson');
+            // --- 5往復に達したためフィードバック生成に切り替え ---
+            this.state.isChatActive = false;
+            this.appendChatBubble("5往復の会話終了！AI講師が総合分析レポートを作成しています...", "system");
+            document.getElementById('chatInputBar').style.display = 'none';
+
+            const feedbackPrompt = [
+              ...this.state.chatHistory,
+              { role: "user", parts: [{ text: "The 5-turn business chat has ended. Analyze all of the student's inputs. Output strict JSON format with exactly 4 keys: 'pronunciation' (advices for accents/linking sounds in Japanese text), 'grammar' (list corrections or confirmation in Japanese), 'naturalness' (how to sound more business professional in Japanese), and 'better_examples' (provide 2-3 specific phrases they could use based on the chat history in English with brief Japanese explanation). Schema: {'pronunciation':'...', 'grammar':'...', 'naturalness':'...', 'better_examples':'...'}" }] }
+            ];
+
+            const jsonResponse = await this.callGeminiAPI(key, feedbackPrompt, true);
+            const fb = JSON.parse(jsonResponse);
+
+            // フィードバック画面の展開マップ
+            document.getElementById('fbPron').textContent = fb.pronunciation;
+            document.getElementById('fbGrammar').textContent = fb.grammar;
+            document.getElementById('fbNatural').textContent = fb.naturalness;
+            document.getElementById('fbExample').textContent = fb.better_examples;
+            
+            document.getElementById('convFeedbackArea').style.display = 'flex';
+            this.scrollToBottom();
           }
-        }, 1500);
+        } catch(e) {
+          this.appendChatBubble("通信エラーが発生しました。接続を確認してください。", "system");
+        } finally {
+          sendBtn.disabled = false;
+          inputEl.disabled = false;
+          if(this.state.isChatActive) inputEl.focus();
+        }
+      },
+
+      finishConvLesson() {
+        // スコア加算 (+50pts)
+        const currentScoreEl = document.getElementById('scoreValue');
+        currentScoreEl.textContent = `${parseInt(currentScoreEl.textContent) + 50} pts`;
+        
+        // 進捗をStep 4 (Writing)に更新
+        this.state.currentLessonStep = 4;
+        this.renderLessonList();
+        this.switchScreen('lesson');
       },
 
       /* ==========================================================================
@@ -480,21 +418,21 @@
          ========================================================================== */
       actions: {
         'go-lesson': (ctx) => ctx.switchScreen('lesson'),
-        'go-vocab': (ctx) => ctx.startVocabulary(),
-        'go-news': (ctx) => ctx.switchScreen('news'),
+        'go-conv': (ctx) => ctx.switchScreen('conv'),
         'go-home': (ctx) => ctx.switchScreen('home'),
-        'vocab-retry': (ctx) => ctx.retryCurrentQuiz(),
-        'vocab-next': (ctx) => ctx.nextQuiz(),
-        'fetch-news-api': (ctx) => ctx.handleNewsGeneration(),
-        'complete-lesson': (ctx) => { alert('Congratulations! Today\'s Lesson Completed!'); ctx.switchScreen('home'); },
-        'conversation': () => alert('Conversation Menu (Under Construction)'),
+        'start-chat-api': (ctx) => ctx.startConversationLesson(),
+        'send-chat-msg': (ctx) => ctx.handleUserSendMessage(),
+        'finish-conv-lesson': (ctx) => ctx.finishConvLesson(),
+        'vocabulary': () => alert('Vocabulary Menu'),
+        'news': () => alert('News Menu'),
         'writing': () => alert('Writing Menu (Under Construction)'),
         'progress': () => alert('Progress Menu'),
-        'settings': () => alert('Settings Menu')
+        'settings': () => alert('Settings Menu'),
+        'complete-lesson': (ctx) => { alert('Congratulations! Today\'s Lesson Completed!'); ctx.switchScreen('home'); }
       }
     };
 
-    // 起動
+    // 初期化起動
     App.init();
   </script>
 </body>
