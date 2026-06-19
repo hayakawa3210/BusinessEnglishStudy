@@ -334,10 +334,21 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
     }
   },
 
+  highlightKeywords(text, words) {
+    const sortedWords = [...words].map(w => w.word).sort((a, b) => b.length - a.length);
+    const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return sortedWords.reduce((result, word) => {
+      const regex = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'gi');
+      return result.replace(regex, (match) => `<strong>${match}</strong>`);
+    }, text);
+  },
+
   renderNewsContent() {
     const data = this.state.newsData; document.getElementById('newsLoader').style.display = 'none'; document.getElementById('newsContentBody').style.display = 'block';
     document.getElementById('newsDiff').textContent = `Level: ${data.difficulty}`; document.getElementById('newsToeic').textContent = `TOEIC: ${data.toeic}`;
-    document.getElementById('newsTitleEn').textContent = data.title; document.getElementById('newsBodyEn').textContent = data.body; document.getElementById('newsSummaryJa').textContent = data.summary_ja;
+    document.getElementById('newsTitleEn').textContent = data.title;
+    document.getElementById('newsBodyEn').innerHTML = this.highlightKeywords(data.body, data.words || []);
+    document.getElementById('newsSummaryJa').textContent = data.summary_ja;
     document.getElementById('newsVocabList').innerHTML = data.words.map(w => `<div class="vocab-row-item"><span class="vocab-word-bold">${w.word}</span><span>${w.meaning}</span></div>`).join('');
     this.loadNewsQuiz();
   },
