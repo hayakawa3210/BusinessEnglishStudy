@@ -66,11 +66,29 @@
     .progress-bar { background: var(--color-primary); height: 100%; width: 0%; transition: width 0.3s ease; }
 
     /* ==========================================================================
-       2. HOME SCREEN
+       2. HOME SCREEN & DASHBOARD (NEW!)
        ========================================================================== */
-    .header { margin-bottom: 24px; }
+    .header { margin-bottom: 16px; }
     .brand-title { font-size: 1.8rem; font-weight: 800; color: var(--color-primary); }
     .sub-title { color: var(--color-text-muted); font-weight: 500; }
+    
+    /* Dashboard Widget */
+    .dashboard-container {
+      background: linear-gradient(135deg, var(--color-primary-light), #fff);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      box-shadow: 0 4px 10px var(--color-shadow);
+    }
+    .dash-box { text-align: center; background: #fff; padding: 12px 8px; border-radius: 12px; border: 1px solid rgba(0,86,179,0.05); }
+    .dash-label { font-size: 0.68rem; font-weight: 700; color: var(--color-text-muted); display: block; margin-bottom: 4px; }
+    .dash-num { font-size: 1.25rem; font-weight: 900; color: var(--color-primary); }
+    .dash-unit { font-size: 0.7rem; font-weight: 700; color: var(--color-text-muted); margin-left: 2px; }
+
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
     .btn-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 20px 16px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: var(--transition-base); box-shadow: 0 4px 6px var(--color-shadow); }
     .btn-card:active { transform: scale(0.98); }
@@ -163,10 +181,18 @@
     /* ==========================================================================
        7. WRITING SCREEN
        ========================================================================== */
-    /* Shared styles with API boxes */
+    /* Common block with others */
 
     /* ==========================================================================
-       8. FIXED STATUS BAR
+       8. LEARNING HISTORY SCREEN (NEW!)
+       ========================================================================== */
+    .history-card { background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 5px var(--color-shadow); }
+    .history-date { font-weight: 800; color: var(--color-primary); border-bottom: 1px solid var(--color-border); padding-bottom: 4px; font-size: 0.95rem; }
+    .history-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.85rem; }
+    .history-item-metric { color: var(--color-text); font-weight: 600; }
+
+    /* ==========================================================================
+       9. FIXED STATUS BAR
        ========================================================================== */
     .status-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background-color: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
     .status-item { text-align: center; }
@@ -186,13 +212,29 @@
         <h1 class="brand-title">Business English 10</h1>
         <p class="sub-title">今日も10分学習しましょう</p>
       </header>
+
+      <section class="dashboard-container">
+        <div class="dash-box">
+          <span class="dash-label">連続学習</span>
+          <span class="dash-num" id="dashStreak">0</span><span class="dash-unit">日</span>
+        </div>
+        <div class="dash-box">
+          <span class="dash-label">今週の学習</span>
+          <span class="dash-num" id="dashWeeklyTime">0</span><span class="dash-unit">分</span>
+        </div>
+        <div class="dash-box">
+          <span class="dash-label">総学習時間</span>
+          <span class="dash-num" id="dashTotalTime">0</span><span class="dash-unit">分</span>
+        </div>
+      </section>
+
       <div class="menu-grid">
         <button class="btn-card primary" data-action="go-lesson"><span>Today's Lesson</span></button>
         <button class="btn-card" data-action="go-vocab"><span>Vocabulary</span></button>
         <button class="btn-card" data-action="go-news"><span>News</span></button>
         <button class="btn-card" data-action="go-conv"><span>Conversation</span></button>
         <button class="btn-card" data-action="go-writing"><span>Writing</span></button>
-        <button class="btn-card" data-action="progress"><span>Progress</span></button>
+        <button class="btn-card" data-action="go-history"><span>Progress</span></button>
       </div>
       <footer><button class="btn-round" data-action="settings">設定</button></footer>
     </main>
@@ -303,14 +345,19 @@
       </div>
     </main>
 
+    <main id="historyScreen" class="screen">
+      <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Learning Progress</h2></header>
+      <div id="historyLogList" style="display: flex; flex-direction: column; gap: 4px;">
+        </div>
+    </main>
+
     <section class="status-bar">
-      <div class="status-item"><span class="status-label">Today's Streak</span><span class="status-value highlight" id="streakValue">5 days</span></div>
-      <div class="status-item"><span class="status-label">Today's Score</span><span class="status-value" id="scoreValue">120 pts</span></div>
+      <div class="status-item"><span class="status-label">Today's Streak</span><span class="status-value highlight" id="streakValue">0 days</span></div>
+      <div class="status-item"><span class="status-label">Today's Score</span><span class="status-value" id="scoreValue">0 pts</span></div>
     </section>
   </div>
 
   <script>
-    // 1. Vocabulary Master Pool
     const VOCABULARY_POOL = [
       { w: 'agenda', m: '協議事項、議題', p: '/əˈdʒen.də/', e: 'What is on the agenda for today’s meeting?', j: '今日の会議の議題は何ですか？' },
       { w: 'allocate', m: '配分する、割り当てる', p: '/ˈæl.ə.keɪt/', e: 'We need to allocate resources efficiently.', j: '私たちは資源を効率的に配分する必要がある。' },
@@ -335,19 +382,23 @@
       state: {
         currentScreen: 'home',
         currentLessonStep: 1,
-        // Vocabulary
+        // Vocabulary Session Buffer
         quizList: [], currentQuizIndex: 0, hasAnswered: false, scoreIncrement: 0,
-        // News
+        // News Session Buffer
         newsData: null, currentNewsQuizIndex: 0,
-        // Conversation
-        chatTurnCount: 0, chatHistory: [], isChatActive: true
+        // Conversation Session Buffer
+        chatTurnCount: 0, chatHistory: [], isChatActive: true,
+        // Temp Today's Metrics Track
+        todayWords: 0, todayNews: 0, todayConv: 0, todayWriting: 0,
+        lessonStartTime: null
       },
 
       init() {
         this.bindEvents();
         this.renderLessonList();
+        this.loadDashboardData();
         
-        // ローカルストレージからAPIキーをロードして同期
+        // APIキーの自動復元
         const savedKey = localStorage.getItem('gemini_key');
         if (savedKey) {
           ['apiKeyInput', 'convApiKeyInput', 'writingApiKeyInput'].forEach(id => {
@@ -385,7 +436,120 @@
       },
 
       /* ==========================================================================
-         COMMON GEMINI FETCH METHOD
+         LOCALSTORAGE ENGINE (DASHBOARD & LOGICAL METRICS)
+         ========================================================================== */
+      getTodayDateString() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      },
+
+      saveLearningLog(sessionMinutes) {
+        const logs = JSON.parse(localStorage.getItem('learningLogs') || '{}');
+        const todayStr = this.getTodayDateString();
+
+        if (!logs[todayStr]) {
+          logs[todayStr] = { words: 0, news: 0, conversation: 0, writing: 0, minutes: 0 };
+        }
+
+        logs[todayStr].words += this.state.todayWords;
+        logs[todayStr].news += this.state.todayNews;
+        logs[todayStr].conversation += this.state.todayConv;
+        logs[todayStr].writing += this.state.todayWriting;
+        logs[todayStr].minutes += sessionMinutes;
+
+        localStorage.setItem('learningLogs', JSON.stringify(logs));
+
+        // 一時バッファをクリア
+        this.state.todayWords = 0;
+        this.state.todayNews = 0;
+        this.state.todayConv = 0;
+        this.state.todayWriting = 0;
+
+        this.loadDashboardData();
+      },
+
+      loadDashboardData() {
+        const logs = JSON.parse(localStorage.getItem('learningLogs') || '{}');
+        const todayStr = this.getTodayDateString();
+        
+        let totalMinutes = 0;
+        let weeklyMinutes = 0;
+        
+        // 週計算用の境界線設定 (1週間前)
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        Object.keys(logs).forEach(dateStr => {
+          const log = logs[dateStr];
+          totalMinutes += log.minutes || 0;
+
+          const logDate = new Date(dateStr);
+          if (logDate >= oneWeekAgo) {
+            weeklyMinutes += log.minutes || 0;
+          }
+        });
+
+        // 連続学習日数の計算 (Streak)
+        let streak = 0;
+        let checkDate = new Date();
+        
+        while (true) {
+          const checkStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+          if (logs[checkStr]) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            // 今日まだ記録がなく、昨日記録があった場合のみ継続判定を通す
+            if (streak === 0) {
+              checkDate.setDate(checkDate.getDate() - 1);
+              const yesterdayStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+              if (logs[yesterdayStr]) {
+                checkDate.setDate(checkDate.getDate()); // ループを繋ぐ
+                continue;
+              }
+            }
+            break;
+          }
+        }
+
+        // DOMへプロジェクション
+        document.getElementById('dashStreak').textContent = streak;
+        document.getElementById('dashWeeklyTime').textContent = Math.round(weeklyMinutes);
+        document.getElementById('dashTotalTime').textContent = Math.round(totalMinutes);
+        document.getElementById('streakValue').textContent = `${streak} days`;
+      },
+
+      renderHistoryScreen() {
+        const logs = JSON.parse(localStorage.getItem('learningLogs') || '{}');
+        const sortedDates = Object.keys(logs).sort((a, b) => new Date(b) - new Date(a));
+        const listEl = document.getElementById('historyLogList');
+
+        if(sortedDates.length === 0) {
+          listEl.innerHTML = `<p style="text-align:center; padding:40px; color:var(--color-text-muted);">学習履歴がまだありません</p>`;
+          return;
+        }
+
+        listEl.innerHTML = sortedDates.map(dateStr => {
+          const log = logs[dateStr];
+          return `
+            <div class="history-card">
+              <div class="history-date">${dateStr}</div>
+              <div class="history-grid">
+                <div>単語クリア: <span class="history-item-metric">${log.words || 0}問</span></div>
+                <div>ニュース読了: <span class="history-item-metric">${log.news || 0}本</span></div>
+                <div>会話ターン: <span class="history-item-metric">${log.conversation || 0}回</span></div>
+                <div>英作文添削: <span class="history-item-metric">${log.writing || 0}回</span></div>
+                <div style="grid-column: span 2; margin-top: 4px; padding-top:4px; border-top:1px dashed var(--color-border); font-weight:700;">
+                  学習時間: <span style="color:var(--color-primary);">${Math.round(log.minutes || 0)} 分</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      /* ==========================================================================
+         GEMINI API TRANSPORT LAYER
          ========================================================================== */
       async callGeminiAPI(apiKey, contents, isJson = false) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
@@ -402,8 +566,13 @@
       },
 
       /* ==========================================================================
-         LESSON SYSTEM
+         TODAY'S LESSON WORKFLOW
          ========================================================================== */
+      startTodayLessonWorkflow() {
+        this.state.lessonStartTime = new Date();
+        this.switchScreen('lesson');
+      },
+
       renderLessonList() {
         document.getElementById('lessonList').innerHTML = LESSON_STEPS.map(lesson => `
           <div class="lesson-item" id="item-${lesson.id}">
@@ -430,10 +599,9 @@
       },
 
       /* ==========================================================================
-         VOCABULARY LOGIC (20 Questions Shuffle)
+         VOCABULARY LOGIC
          ========================================================================== */
       startVocabulary() {
-        // 全プールを複製・シャッフル (制約上20問生成のため単語を拡張してご使用ください)
         let doublePool = [...VOCABULARY_POOL, ...VOCABULARY_POOL].map(item => ({...item}));
         this.state.quizList = this.shuffle(doublePool).slice(0, 20);
         this.state.currentQuizIndex = 0; this.state.scoreIncrement = 0;
@@ -460,8 +628,14 @@
         const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
         const isCorrect = val === currentQuiz.m;
         document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
-        if (isCorrect) { btnElement.classList.add('correct'); document.getElementById('resultHeader').innerHTML = '〇 正解'; document.getElementById('resultHeader').className = 'result-header correct'; this.state.scoreIncrement += 10; }
-        else { btnElement.classList.add('wrong'); document.getElementById('resultHeader').innerHTML = '× 不正解'; document.getElementById('resultHeader').className = 'result-header wrong'; document.querySelectorAll('.btn-option').forEach(b => { if(b.textContent === currentQuiz.m) b.classList.add('correct'); }); }
+        
+        this.state.todayWords++; // メトリクス追跡
+
+        if (isCorrect) {
+          btnElement.classList.add('correct'); document.getElementById('resultHeader').innerHTML = '〇 正解'; document.getElementById('resultHeader').className = 'result-header correct'; this.state.scoreIncrement += 10;
+        } else {
+          btnElement.classList.add('wrong'); document.getElementById('resultHeader').innerHTML = '× 不正解'; document.getElementById('resultHeader').className = 'result-header wrong'; document.querySelectorAll('.btn-option').forEach(b => { if(b.textContent === currentQuiz.m) b.classList.add('correct'); });
+        }
         document.getElementById('quizPhonetic').textContent = currentQuiz.p; document.getElementById('quizSentenceEn').textContent = currentQuiz.e; document.getElementById('quizSentenceJa').textContent = currentQuiz.j;
         document.getElementById('resultBox').style.display = 'block'; document.getElementById('quizActions').style.display = 'flex';
       },
@@ -477,7 +651,7 @@
       },
 
       /* ==========================================================================
-         BUSINESS NEWS LOGIC (Gemini Integration)
+         BUSINESS NEWS LOGIC
          ========================================================================== */
       async handleNewsGeneration() {
         const key = document.getElementById('apiKeyInput').value.trim();
@@ -491,6 +665,7 @@
           const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true);
           this.state.newsData = JSON.parse(jsonText);
           this.state.currentNewsQuizIndex = 0;
+          this.state.todayNews++; // メトリクス追跡
           this.renderNewsContent();
         } catch (e) {
           alert('ニュース取得エラー。キーを確認してください。');
@@ -536,7 +711,7 @@
       },
 
       /* ==========================================================================
-         BUSINESS CONVERSATION LOGIC (5 Turns Chat)
+         BUSINESS CONVERSATION LOGIC
          ========================================================================== */
       async startConversationLesson() {
         const key = document.getElementById('convApiKeyInput').value.trim();
@@ -578,6 +753,8 @@
         inputEl.value = ''; this.state.chatTurnCount++;
         this.appendChatBubble(userText, 'user');
         this.state.chatHistory.push({ role: "user", parts: [{ text: userText }] });
+        
+        this.state.todayConv++; // メトリクス追跡（発言の往復数）
 
         document.getElementById('chatSendBtn').disabled = true; inputEl.disabled = true;
         const key = localStorage.getItem('gemini_key');
@@ -619,7 +796,7 @@
       },
 
       /* ==========================================================================
-         BUSINESS WRITING LOGIC (Proofreading)
+         BUSINESS WRITING LOGIC
          ========================================================================== */
       startWritingMode() {
         document.getElementById('writingInitBlock').style.display = 'none';
@@ -652,6 +829,8 @@
           document.getElementById('wtNatural').textContent = result.naturalness;
           document.getElementById('wtBusiness').textContent = result.business_use;
 
+          this.state.todayWriting++; // メトリクス追跡
+
           document.getElementById('writingLoader').style.display = 'none';
           document.getElementById('writingFeedbackArea').style.display = 'flex';
         } catch(e) {
@@ -676,11 +855,12 @@
          GLOBAL ACTIONS ROUTER
          ========================================================================== */
       actions: {
-        'go-lesson': (ctx) => ctx.switchScreen('lesson'),
+        'go-lesson': (ctx) => ctx.startTodayLessonWorkflow(),
         'go-vocab': (ctx) => ctx.startVocabulary(),
         'go-news': (ctx) => ctx.switchScreen('news'),
         'go-conv': (ctx) => ctx.switchScreen('conv'),
         'go-writing': (ctx) => ctx.switchScreen('writing'),
+        'go-history': (ctx) => { ctx.renderHistoryScreen(); ctx.switchScreen('history'); },
         'go-home': (ctx) => ctx.switchScreen('home'),
         'vocab-retry': (ctx) => ctx.retryCurrentQuiz(),
         'vocab-next': (ctx) => ctx.nextQuiz(),
@@ -691,7 +871,20 @@
         'start-writing-mode': (ctx) => ctx.startWritingMode(),
         'submit-writing': (ctx) => ctx.submitWritingLesson(),
         'finish-writing-lesson': (ctx) => ctx.finishWritingLesson(),
-        'complete-lesson': (ctx) => { alert('Congratulations! Completed!'); ctx.switchScreen('home'); },
+        'complete-lesson': (ctx) => {
+          // レッスン全体の経過時間を計算（分単位）
+          let diffMinutes = 10; // フォールバック値
+          if (ctx.state.lessonStartTime) {
+            const now = new Date();
+            diffMinutes = (now - ctx.state.lessonStartTime) / 1000 / 60;
+          }
+          ctx.saveLearningLog(diffMinutes); // ログをコミットして永続化
+
+          alert('Congratulations! Today\'s Lesson Completed!');
+          ctx.state.currentLessonStep = 1;
+          ctx.renderLessonList();
+          ctx.switchScreen('home');
+        },
         'progress': () => alert('Progress Menu'),
         'settings': () => alert('Settings Menu')
       }
