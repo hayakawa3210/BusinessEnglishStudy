@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Business English 10</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0056b3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BizEng10">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
   <style>
     /* ==========================================================================
        1. VARIABLES & RESET
@@ -37,6 +45,7 @@
       min-height: 100vh;
     }
 
+    /* Responsive Wrapper */
     .app-container {
       width: 100%;
       max-width: 480px;
@@ -48,7 +57,6 @@
       overflow: hidden;
     }
 
-    /* Screen Visibility */
     .screen {
       display: none;
       flex-direction: column;
@@ -59,20 +67,18 @@
 
     .screen.active { display: flex; }
 
-    /* Common Components */
     .screen-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-shrink: 0; }
     .btn-back { background: none; border: none; color: var(--color-primary); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; }
     .progress-container { background: var(--color-primary-light); border-radius: 10px; height: 8px; width: 100%; margin-bottom: 24px; overflow: hidden; flex-shrink: 0; }
     .progress-bar { background: var(--color-primary); height: 100%; width: 0%; transition: width 0.3s ease; }
 
     /* ==========================================================================
-       2. HOME SCREEN & DASHBOARD (NEW!)
+       2. HOME SCREEN & DASHBOARD
        ========================================================================== */
     .header { margin-bottom: 16px; }
     .brand-title { font-size: 1.8rem; font-weight: 800; color: var(--color-primary); }
     .sub-title { color: var(--color-text-muted); font-weight: 500; }
     
-    /* Dashboard Widget */
     .dashboard-container {
       background: linear-gradient(135deg, var(--color-primary-light), #fff);
       border: 1px solid var(--color-border);
@@ -94,6 +100,29 @@
     .btn-card:active { transform: scale(0.98); }
     .btn-card.primary { grid-column: span 2; background: var(--color-primary); color: #fff; border: none; }
     .btn-round { width: 100%; padding: 14px; background-color: var(--color-primary-light); color: var(--color-primary); border: none; border-radius: var(--radius-round); font-weight: 600; cursor: pointer; }
+
+    /* PWA Install Prompt Banner Style */
+    .pwa-install-banner {
+      display: none;
+      background: #343a40;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 0.4s ease;
+    }
+    .pwa-install-btn {
+      background: var(--color-success);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
 
     /* ==========================================================================
        3. LESSON SCREEN
@@ -179,12 +208,7 @@
     .feedback-body { font-size: 0.95rem; line-height: 1.6; color: #333; white-space: pre-line; }
 
     /* ==========================================================================
-       7. WRITING SCREEN
-       ========================================================================== */
-    /* Common block with others */
-
-    /* ==========================================================================
-       8. LEARNING HISTORY SCREEN (NEW!)
+       7. LEARNING HISTORY SCREEN
        ========================================================================== */
     .history-card { background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 5px var(--color-shadow); }
     .history-date { font-weight: 800; color: var(--color-primary); border-bottom: 1px solid var(--color-border); padding-bottom: 4px; font-size: 0.95rem; }
@@ -192,7 +216,7 @@
     .history-item-metric { color: var(--color-text); font-weight: 600; }
 
     /* ==========================================================================
-       9. FIXED STATUS BAR
+       8. FIXED STATUS BAR
        ========================================================================== */
     .status-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background-color: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
     .status-item { text-align: center; }
@@ -212,6 +236,11 @@
         <h1 class="brand-title">Business English 10</h1>
         <p class="sub-title">今日も10分学習しましょう</p>
       </header>
+
+      <div class="pwa-install-banner" id="pwaBanner">
+        <span style="font-size:0.85rem; font-weight:600;">アプリをスマホに追加して快適に学習</span>
+        <button class="pwa-install-btn" id="pwaInstallBtn">追加</button>
+      </div>
 
       <section class="dashboard-container">
         <div class="dash-box">
@@ -347,8 +376,7 @@
 
     <main id="historyScreen" class="screen">
       <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Learning Progress</h2></header>
-      <div id="historyLogList" style="display: flex; flex-direction: column; gap: 4px;">
-        </div>
+      <div id="historyLogList" style="display: flex; flex-direction: column; gap: 4px;"></div>
     </main>
 
     <section class="status-bar">
@@ -358,6 +386,7 @@
   </div>
 
   <script>
+    // 辞書データプール
     const VOCABULARY_POOL = [
       { w: 'agenda', m: '協議事項、議題', p: '/əˈdʒen.də/', e: 'What is on the agenda for today’s meeting?', j: '今日の会議の議題は何ですか？' },
       { w: 'allocate', m: '配分する、割り当てる', p: '/ˈæl.ə.keɪt/', e: 'We need to allocate resources efficiently.', j: '私たちは資源を効率的に配分する必要がある。' },
@@ -378,17 +407,15 @@
       { id: 4, name: 'Writing', type: 'Lesson 4' }
     ];
 
+    // PWAブラウザインストールインストール用DeferredPrompt
+    let deferredPrompt = null;
+
     const App = {
       state: {
-        currentScreen: 'home',
-        currentLessonStep: 1,
-        // Vocabulary Session Buffer
+        currentScreen: 'home', currentLessonStep: 1,
         quizList: [], currentQuizIndex: 0, hasAnswered: false, scoreIncrement: 0,
-        // News Session Buffer
         newsData: null, currentNewsQuizIndex: 0,
-        // Conversation Session Buffer
         chatTurnCount: 0, chatHistory: [], isChatActive: true,
-        // Temp Today's Metrics Track
         todayWords: 0, todayNews: 0, todayConv: 0, todayWriting: 0,
         lessonStartTime: null
       },
@@ -397,8 +424,8 @@
         this.bindEvents();
         this.renderLessonList();
         this.loadDashboardData();
+        this.setupPWAInstallation();
         
-        // APIキーの自動復元
         const savedKey = localStorage.getItem('gemini_key');
         if (savedKey) {
           ['apiKeyInput', 'convApiKeyInput', 'writingApiKeyInput'].forEach(id => {
@@ -436,7 +463,35 @@
       },
 
       /* ==========================================================================
-         LOCALSTORAGE ENGINE (DASHBOARD & LOGICAL METRICS)
+         PWA INSTALLATION LOGIC (A2HS)
+         ========================================================================== */
+      setupPWAInstallation() {
+        const banner = document.getElementById('pwaBanner');
+        const btn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e; // プロンプトを退避
+          banner.style.display = 'flex'; // インストールバナーを表示
+        });
+
+        btn.addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          banner.style.display = 'none';
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to install prompt: ${outcome}`);
+          deferredPrompt = null;
+        });
+
+        window.addEventListener('appinstalled', () => {
+          banner.style.display = 'none';
+          console.log('PWA app was successfully installed!');
+        });
+      },
+
+      /* ==========================================================================
+         LOCALSTORAGE STORAGE & STATS
          ========================================================================== */
       getTodayDateString() {
         const d = new Date();
@@ -459,60 +514,36 @@
 
         localStorage.setItem('learningLogs', JSON.stringify(logs));
 
-        // 一時バッファをクリア
-        this.state.todayWords = 0;
-        this.state.todayNews = 0;
-        this.state.todayConv = 0;
-        this.state.todayWriting = 0;
-
+        this.state.todayWords = 0; this.state.todayNews = 0; this.state.todayConv = 0; this.state.todayWriting = 0;
         this.loadDashboardData();
       },
 
       loadDashboardData() {
         const logs = JSON.parse(localStorage.getItem('learningLogs') || '{}');
-        const todayStr = this.getTodayDateString();
-        
-        let totalMinutes = 0;
-        let weeklyMinutes = 0;
-        
-        // 週計算用の境界線設定 (1週間前)
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        let totalMinutes = 0, weeklyMinutes = 0;
+        const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         Object.keys(logs).forEach(dateStr => {
           const log = logs[dateStr];
           totalMinutes += log.minutes || 0;
-
-          const logDate = new Date(dateStr);
-          if (logDate >= oneWeekAgo) {
-            weeklyMinutes += log.minutes || 0;
-          }
+          if (new Date(dateStr) >= oneWeekAgo) weeklyMinutes += log.minutes || 0;
         });
 
-        // 連続学習日数の計算 (Streak)
-        let streak = 0;
-        let checkDate = new Date();
-        
+        let streak = 0; let checkDate = new Date();
         while (true) {
           const checkStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
           if (logs[checkStr]) {
-            streak++;
-            checkDate.setDate(checkDate.getDate() - 1);
+            streak++; checkDate.setDate(checkDate.getDate() - 1);
           } else {
-            // 今日まだ記録がなく、昨日記録があった場合のみ継続判定を通す
             if (streak === 0) {
               checkDate.setDate(checkDate.getDate() - 1);
-              const yesterdayStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
-              if (logs[yesterdayStr]) {
-                checkDate.setDate(checkDate.getDate()); // ループを繋ぐ
-                continue;
-              }
+              const yesStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+              if (logs[yesStr]) { checkDate.setDate(checkDate.getDate()); continue; }
             }
             break;
           }
         }
 
-        // DOMへプロジェクション
         document.getElementById('dashStreak').textContent = streak;
         document.getElementById('dashWeeklyTime').textContent = Math.round(weeklyMinutes);
         document.getElementById('dashTotalTime').textContent = Math.round(totalMinutes);
@@ -549,15 +580,13 @@
       },
 
       /* ==========================================================================
-         GEMINI API TRANSPORT LAYER
+         GEMINI CORE REQ API
          ========================================================================== */
       async callGeminiAPI(apiKey, contents, isJson = false) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         const config = isJson ? { responseMimeType: "application/json" } : {};
-        
         const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: contents, generationConfig: config })
         });
         if (!response.ok) throw new Error('API request failed');
@@ -566,13 +595,9 @@
       },
 
       /* ==========================================================================
-         TODAY'S LESSON WORKFLOW
+         LESSONS WORKFLOWS
          ========================================================================== */
-      startTodayLessonWorkflow() {
-        this.state.lessonStartTime = new Date();
-        this.switchScreen('lesson');
-      },
-
+      startTodayLessonWorkflow() { this.state.lessonStartTime = new Date(); this.switchScreen('lesson'); },
       renderLessonList() {
         document.getElementById('lessonList').innerHTML = LESSON_STEPS.map(lesson => `
           <div class="lesson-item" id="item-${lesson.id}">
@@ -587,19 +612,17 @@
         const { currentLessonStep } = this.state;
         document.getElementById('progressBar').style.width = `${(currentLessonStep / LESSON_STEPS.length) * 100}%`;
         LESSON_STEPS.forEach(lesson => {
-          const el = document.getElementById(`item-${lesson.id}`);
-          if(!el) return;
+          const el = document.getElementById(`item-${lesson.id}`); if(!el) return;
           el.classList.remove('active', 'completed');
           if (lesson.id < currentLessonStep) { el.classList.add('completed'); el.querySelector('.step-number').innerHTML = '✓'; }
           else if (lesson.id === currentLessonStep) { el.classList.add('active'); el.querySelector('.step-number').innerHTML = lesson.id; }
         });
         const btn = document.getElementById('completeBtn');
-        btn.classList.toggle('ready', currentLessonStep > LESSON_STEPS.length);
-        btn.disabled = currentLessonStep <= LESSON_STEPS.length;
+        btn.classList.toggle('ready', currentLessonStep > LESSON_STEPS.length); btn.disabled = currentLessonStep <= LESSON_STEPS.length;
       },
 
       /* ==========================================================================
-         VOCABULARY LOGIC
+         VOCABULARY
          ========================================================================== */
       startVocabulary() {
         let doublePool = [...VOCABULARY_POOL, ...VOCABULARY_POOL].map(item => ({...item}));
@@ -609,27 +632,23 @@
       },
 
       loadQuiz() {
-        this.state.hasAnswered = false;
-        const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
-        if(!currentQuiz) return;
+        this.state.hasAnswered = false; const currentQuiz = this.state.quizList[this.state.currentQuizIndex]; if(!currentQuiz) return;
         document.getElementById('quizProgressInfo').textContent = `Question ${this.state.currentQuizIndex + 1} / 20`;
         document.getElementById('vocabProgressBar').style.width = `${(this.state.currentQuizIndex / 20) * 100}%`;
         document.getElementById('quizWord').textContent = currentQuiz.w;
         const wrongOptions = VOCABULARY_POOL.filter(v => v.w !== currentQuiz.w);
         const selectedOptions = this.shuffle([currentQuiz.m, wrongOptions[0]?.m, wrongOptions[1]?.m, wrongOptions[2]?.m].filter(Boolean));
         document.getElementById('optionsContainer').innerHTML = selectedOptions.map(option => `<button class="btn-option" onclick="App.handleAnswer(this, '${option}')">${option}</button>`).join('');
-        document.getElementById('resultBox').style.display = 'none';
-        document.getElementById('quizActions').style.display = 'none';
+        document.getElementById('resultBox').style.display = 'none'; document.getElementById('quizActions').style.display = 'none';
         document.getElementById('vocabNextBtn').textContent = this.state.currentQuizIndex === 19 ? '結果を見る' : '次へ';
       },
 
       handleAnswer(btnElement, val) {
         if (this.state.hasAnswered) return; this.state.hasAnswered = true;
         const currentQuiz = this.state.quizList[this.state.currentQuizIndex];
-        const isCorrect = val === currentQuiz.m;
-        document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
+        const isCorrect = val === currentQuiz.m; document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
         
-        this.state.todayWords++; // メトリクス追跡
+        this.state.todayWords++;
 
         if (isCorrect) {
           btnElement.classList.add('correct'); document.getElementById('resultHeader').innerHTML = '〇 正解'; document.getElementById('resultHeader').className = 'result-header correct'; this.state.scoreIncrement += 10;
@@ -644,45 +663,32 @@
       nextQuiz() {
         if (this.state.currentQuizIndex < 19) { this.state.currentQuizIndex++; this.loadQuiz(); }
         else {
-          alert(`Vocabulary終了! スコア: +${this.state.scoreIncrement} pts`);
-          this.addGlobalScore(this.state.scoreIncrement);
+          alert(`Vocabulary終了! スコア: +${this.state.scoreIncrement} pts`); this.addGlobalScore(this.state.scoreIncrement);
           this.state.currentLessonStep = 2; this.renderLessonList(); this.switchScreen('lesson');
         }
       },
 
       /* ==========================================================================
-         BUSINESS NEWS LOGIC
+         BUSINESS NEWS
          ========================================================================== */
       async handleNewsGeneration() {
-        const key = document.getElementById('apiKeyInput').value.trim();
-        if(!key) return alert('APIキーを入力してください');
-        localStorage.setItem('gemini_key', key);
-        document.getElementById('apiKeyBlock').style.display = 'none';
-        document.getElementById('newsLoader').style.display = 'block';
+        const key = document.getElementById('apiKeyInput').value.trim(); if(!key) return alert('APIキーを入力してください');
+        localStorage.setItem('gemini_key', key); document.getElementById('apiKeyBlock').style.display = 'none'; document.getElementById('newsLoader').style.display = 'block';
 
         const promptText = "Generate one short English business news article. Output strictly in JSON format matching this schema: { 'title': 'English Title', 'body': 'English news body text (about 3 sentences)', 'summary_ja': 'Detailed Japanese summary', 'difficulty': 'Intermediate', 'toeic': '700+', 'words': [ {'word': 'word1', 'meaning': 'meaning1'}, {'word': 'word2', 'meaning': 'meaning2'}, {'word': 'word3', 'meaning': 'meaning3'}, {'word': 'word4', 'meaning': 'meaning4'}, {'word': 'word5', 'meaning': 'meaning5'} ], 'quizzes': [ {'question': 'Question1?', 'options': ['A', 'B', 'C', 'D'], 'answer': 'A'}, {'question': 'Question2?', 'options': ['A','B','C','D'], 'answer': 'B'}, {'question': 'Question3?', 'options': ['A','B','C','D'], 'answer': 'C'} ] }";
         try {
           const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true);
-          this.state.newsData = JSON.parse(jsonText);
-          this.state.currentNewsQuizIndex = 0;
-          this.state.todayNews++; // メトリクス追跡
+          this.state.newsData = JSON.parse(jsonText); this.state.currentNewsQuizIndex = 0; this.state.todayNews++;
           this.renderNewsContent();
         } catch (e) {
-          alert('ニュース取得エラー。キーを確認してください。');
-          document.getElementById('apiKeyBlock').style.display = 'flex';
-          document.getElementById('newsLoader').style.display = 'none';
+          alert('ニュース取得エラー'); document.getElementById('apiKeyBlock').style.display = 'flex'; document.getElementById('newsLoader').style.display = 'none';
         }
       },
 
       renderNewsContent() {
-        const data = this.state.newsData;
-        document.getElementById('newsLoader').style.display = 'none';
-        document.getElementById('newsContentBody').style.display = 'block';
-        document.getElementById('newsDiff').textContent = `Level: ${data.difficulty}`;
-        document.getElementById('newsToeic').textContent = `TOEIC: ${data.toeic}`;
-        document.getElementById('newsTitleEn').textContent = data.title;
-        document.getElementById('newsBodyEn').textContent = data.body;
-        document.getElementById('newsSummaryJa').textContent = data.summary_ja;
+        const data = this.state.newsData; document.getElementById('newsLoader').style.display = 'none'; document.getElementById('newsContentBody').style.display = 'block';
+        document.getElementById('newsDiff').textContent = `Level: ${data.difficulty}`; document.getElementById('newsToeic').textContent = `TOEIC: ${data.toeic}`;
+        document.getElementById('newsTitleEn').textContent = data.title; document.getElementById('newsBodyEn').textContent = data.body; document.getElementById('newsSummaryJa').textContent = data.summary_ja;
         document.getElementById('newsVocabList').innerHTML = data.words.map(w => `<div class="vocab-row-item"><span class="vocab-word-bold">${w.word}</span><span>${w.meaning}</span></div>`).join('');
         this.loadNewsQuiz();
       },
@@ -711,31 +717,23 @@
       },
 
       /* ==========================================================================
-         BUSINESS CONVERSATION LOGIC
+         BUSINESS CONVERSATION
          ========================================================================== */
       async startConversationLesson() {
-        const key = document.getElementById('convApiKeyInput').value.trim();
-        if(!key) return alert('APIキーを入力してください');
-        localStorage.setItem('gemini_key', key);
-        document.getElementById('convApiKeyBlock').style.display = 'none';
-        document.getElementById('convLoader').style.display = 'block';
+        const key = document.getElementById('convApiKeyInput').value.trim(); if(!key) return alert('APIキーを入力してください');
+        localStorage.setItem('gemini_key', key); document.getElementById('convApiKeyBlock').style.display = 'none'; document.getElementById('convLoader').style.display = 'block';
 
         this.state.chatTurnCount = 0; this.state.chatHistory = []; this.state.isChatActive = true;
-        document.getElementById('chatMessages').innerHTML = '';
-        document.getElementById('convFeedbackArea').style.display = 'none';
+        document.getElementById('chatMessages').innerHTML = ''; document.getElementById('convFeedbackArea').style.display = 'none';
 
         const systemInitPrompt = { role: "user", parts: [{ text: "You are an elite business English teacher. Start a realistic business chat conversation suitable for a TOEIC 600 level student. Speak only 1-2 simple sentences and ask a clear question at the end. Speak ONLY in English." }] };
         try {
           const aiResponse = await this.callGeminiAPI(key, [systemInitPrompt]);
-          document.getElementById('convLoader').style.display = 'none';
-          document.getElementById('chatWrapper').style.display = 'flex';
+          document.getElementById('convLoader').style.display = 'none'; document.getElementById('chatWrapper').style.display = 'flex';
           this.state.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-          this.appendChatBubble(aiResponse, 'ai');
-          this.appendChatBubble('第1往復 / 全5回', 'system');
+          this.appendChatBubble(aiResponse, 'ai'); this.appendChatBubble('第1往復 / 全5回', 'system');
         } catch(e) {
-          alert('講師の起動に失敗。');
-          document.getElementById('convApiKeyBlock').style.display = 'flex';
-          document.getElementById('convLoader').style.display = 'none';
+          alert('講師の起動に失敗。'); document.getElementById('convApiKeyBlock').style.display = 'flex'; document.getElementById('convLoader').style.display = 'none';
         }
       },
 
@@ -747,14 +745,13 @@
 
       async handleUserSendMessage() {
         if(!this.state.isChatActive) return;
-        const inputEl = document.getElementById('chatInputField');
-        const userText = inputEl.value.trim(); if(!userText) return;
+        const inputEl = document.getElementById('chatInputField'); const userText = inputEl.value.trim(); if(!userText) return;
 
         inputEl.value = ''; this.state.chatTurnCount++;
         this.appendChatBubble(userText, 'user');
         this.state.chatHistory.push({ role: "user", parts: [{ text: userText }] });
         
-        this.state.todayConv++; // メトリクス追跡（発言の往復数）
+        this.state.todayConv++;
 
         document.getElementById('chatSendBtn').disabled = true; inputEl.disabled = true;
         const key = localStorage.getItem('gemini_key');
@@ -767,16 +764,15 @@
             ];
             const aiResponse = await this.callGeminiAPI(key, promptContext);
             this.state.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-            this.appendChatBubble(aiResponse, 'ai');
-            this.appendChatBubble(`第${this.state.chatTurnCount + 1}往復 / 全5回`, 'system');
+            this.appendChatBubble(aiResponse, 'ai'); this.appendChatBubble(`第${this.state.chatTurnCount + 1}往復 / 全5回`, 'system');
           } else {
             this.state.isChatActive = false;
-            this.appendChatBubble("5往復終了。AI講師がフィードバックを抽出中...", "system");
+            this.appendChatBubble("5往復終了。フィードバックを抽出中...", "system");
             document.getElementById('chatInputBar').style.display = 'none';
 
             const feedbackPrompt = [
               ...this.state.chatHistory,
-              { role: "user", parts: [{ text: "Output strict JSON format with exactly 4 keys explaining everything in Japanese (except English phrases): 'pronunciation' (advices), 'grammar' (corrections), 'naturalness' (business expressions), and 'better_examples' (2-3 phrases in English with Japanese notes). Schema: {'pronunciation':'...', 'grammar':'...', 'naturalness':'...', 'better_examples':'...'}" }] }
+              { role: "user", parts: [{ text: "Output strict JSON format with exactly 4 keys explaining everything in Japanese: 'pronunciation', 'grammar', 'naturalness', and 'better_examples'." }] }
             ];
             const jsonResponse = await this.callGeminiAPI(key, feedbackPrompt, true);
             const fb = JSON.parse(jsonResponse);
@@ -791,30 +787,19 @@
         finally { document.getElementById('chatSendBtn').disabled = false; inputEl.disabled = false; if(this.state.isChatActive) inputEl.focus(); }
       },
 
-      finishConvLesson() {
-        this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson');
-      },
+      finishConvLesson() { this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson'); },
 
       /* ==========================================================================
-         BUSINESS WRITING LOGIC
+         BUSINESS WRITING
          ========================================================================== */
-      startWritingMode() {
-        document.getElementById('writingInitBlock').style.display = 'none';
-        document.getElementById('writingArea').style.display = 'flex';
-        document.getElementById('writingFeedbackArea').style.display = 'none';
-      },
-
+      startWritingMode() { document.getElementById('writingInitBlock').style.display = 'none'; document.getElementById('writingArea').style.display = 'flex'; document.getElementById('writingFeedbackArea').style.display = 'none'; },
       async submitWritingLesson() {
-        const userText = document.getElementById('writingInputField').value.trim();
-        if(!userText) return alert('英文を入力してください');
-
-        const key = localStorage.getItem('gemini_key');
-        document.getElementById('writingArea').style.display = 'none';
-        document.getElementById('writingLoader').style.display = 'block';
+        const userText = document.getElementById('writingInputField').value.trim(); if(!userText) return alert('英文を入力してください');
+        const key = localStorage.getItem('gemini_key'); document.getElementById('writingArea').style.display = 'none'; document.getElementById('writingLoader').style.display = 'block';
 
         const systemWritingPrompt = [{
           role: "user", parts: [{
-            text: `Proofread this business text: "${userText}". Output strict JSON with 6 keys. Explain in Japanese (except English phrases). Schema: { "score": 80, "corrected": "English text", "errors": "Japanese notes", "reason": "Japanese notes", "naturalness": "English & Japanese explanation", "business_use": "English & Japanese notes" }`
+            text: `Proofread this business text: "${userText}". Output strict JSON with 6 keys. Explain in Japanese. Schema: { "score": 80, "corrected": "...", "errors": "...", "reason": "...", "naturalness": "...", "business_use": "..." }`
           }]
         }];
 
@@ -829,10 +814,9 @@
           document.getElementById('wtNatural').textContent = result.naturalness;
           document.getElementById('wtBusiness').textContent = result.business_use;
 
-          this.state.todayWriting++; // メトリクス追跡
+          this.state.todayWriting++;
 
-          document.getElementById('writingLoader').style.display = 'none';
-          document.getElementById('writingFeedbackArea').style.display = 'flex';
+          document.getElementById('writingLoader').style.display = 'none'; document.getElementById('writingFeedbackArea').style.display = 'flex';
         } catch(e) {
           alert('添削エラー'); document.getElementById('writingLoader').style.display = 'none'; document.getElementById('writingArea').style.display = 'flex';
         }
@@ -843,16 +827,10 @@
         alert('🎉 今日の全レッスンステップをクリアしました！素晴らしい集中力です！');
       },
 
-      /* ==========================================================================
-         UTILITIES
-         ========================================================================== */
-      addGlobalScore(pts) {
-        const el = document.getElementById('scoreValue');
-        el.textContent = `${parseInt(el.textContent) + pts} pts`;
-      },
+      addGlobalScore(pts) { const el = document.getElementById('scoreValue'); el.textContent = `${parseInt(el.textContent) + pts} pts`; },
 
       /* ==========================================================================
-         GLOBAL ACTIONS ROUTER
+         GLOBAL METRICS ACTION ROUTER
          ========================================================================== */
       actions: {
         'go-lesson': (ctx) => ctx.startTodayLessonWorkflow(),
@@ -872,18 +850,13 @@
         'submit-writing': (ctx) => ctx.submitWritingLesson(),
         'finish-writing-lesson': (ctx) => ctx.finishWritingLesson(),
         'complete-lesson': (ctx) => {
-          // レッスン全体の経過時間を計算（分単位）
-          let diffMinutes = 10; // フォールバック値
+          let diffMinutes = 10;
           if (ctx.state.lessonStartTime) {
-            const now = new Date();
-            diffMinutes = (now - ctx.state.lessonStartTime) / 1000 / 60;
+            diffMinutes = (new Date() - ctx.state.lessonStartTime) / 1000 / 60;
           }
-          ctx.saveLearningLog(diffMinutes); // ログをコミットして永続化
-
+          ctx.saveLearningLog(diffMinutes);
           alert('Congratulations! Today\'s Lesson Completed!');
-          ctx.state.currentLessonStep = 1;
-          ctx.renderLessonList();
-          ctx.switchScreen('home');
+          ctx.state.currentLessonStep = 1; ctx.renderLessonList(); ctx.switchScreen('home');
         },
         'progress': () => alert('Progress Menu'),
         'settings': () => alert('Settings Menu')
@@ -891,6 +864,17 @@
     };
 
     App.init();
+
+    /* ==========================================================================
+       SERVICE WORKER REGISTRATION REGISTER
+       ========================================================================== */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then((reg) => console.log('ServiceWorker registered successfully with scope: ', reg.scope))
+          .catch((err) => console.error('ServiceWorker registration failed: ', err));
+      });
+    }
   </script>
 </body>
 </html>

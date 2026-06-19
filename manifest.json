@@ -1,0 +1,22 @@
+{
+  "name": "Business English 10",
+  "short_name": "BizEng10",
+  "description": "1日10分のビジネス英語AI学習アプリ",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0056b3",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
