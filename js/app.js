@@ -373,15 +373,15 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   startVocabulary() {
     let doublePool = [...VOCABULARY_POOL, ...VOCABULARY_POOL].map(item => ({...item}));
-    this.state.quizList = this.shuffle(doublePool).slice(0, 20);
+    this.state.quizList = this.shuffle(doublePool).slice(0, 10);
     this.state.currentQuizIndex = 0; this.state.scoreIncrement = 0;
     this.switchScreen('vocab'); this.loadQuiz();
   },
 
   loadQuiz() {
     this.state.hasAnswered = false; const currentQuiz = this.state.quizList[this.state.currentQuizIndex]; if(!currentQuiz) return;
-    document.getElementById('quizProgressInfo').textContent = `Question ${this.state.currentQuizIndex + 1} / 20`;
-    document.getElementById('vocabProgressBar').style.width = `${(this.state.currentQuizIndex / 20) * 100}%`;
+    document.getElementById('quizProgressInfo').textContent = `Question ${this.state.currentQuizIndex + 1} / 10`;
+    document.getElementById('vocabProgressBar').style.width = `${(this.state.currentQuizIndex / 10) * 100}%`;
     document.getElementById('quizWord').textContent = currentQuiz.w;
     // Show phonetic under the word for quick reference
     const phonEl = document.getElementById('quizPhoneticInline'); if (phonEl) phonEl.textContent = currentQuiz.p || '';
@@ -390,7 +390,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     document.getElementById('optionsContainer').innerHTML = selectedOptions.map(option => `<button class="btn-option" onclick="App.handleAnswer(this, '${option}')">${option}</button>`).join('');
     document.getElementById('resultBox').style.display = 'none'; document.getElementById('quizActions').style.display = 'none';
     // this.speakEnglish(currentQuiz.w);
-    document.getElementById('vocabNextBtn').textContent = this.state.currentQuizIndex === 19 ? '結果を見る' : '次へ';
+    document.getElementById('vocabNextBtn').textContent = this.state.currentQuizIndex === 9 ? '結果を見る' : '次へ';
 
   },
 
@@ -412,7 +412,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   retryCurrentQuiz() { this.loadQuiz(); },
   nextQuiz() {
-    if (this.state.currentQuizIndex < 19) { this.state.currentQuizIndex++; this.loadQuiz(); }
+    if (this.state.currentQuizIndex < 9) { this.state.currentQuizIndex++; this.loadQuiz(); }
     else {
       alert(`Vocabulary終了! スコア: +${this.state.scoreIncrement} pts`); this.addGlobalScore(this.state.scoreIncrement);
       this.state.currentLessonStep = 2; this.renderLessonList(); this.switchScreen('lesson');
