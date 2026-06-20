@@ -1,5 +1,7 @@
 // `VOCABULARY_POOL` is loaded from `js/vocab.js` (global `VOCABULARY_POOL` var)
 
+const APP_VERSION = window.APP_VERSION || '2.0.0';
+const APP_LAST_UPDATED = window.APP_LAST_UPDATED || (document.lastModified ? new Date(document.lastModified).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '不明');
 
 const LESSON_STEPS = [
   { id: 1, name: 'Vocabulary', type: 'Lesson 1' },
@@ -38,6 +40,7 @@ const App = {
         if(el) el.value = savedKey;
       });
     }
+    this.updateVersionInfo();
     // 💡 ここを追加！スピーカーボタンを押したら現在の単語を読み上げる
     document.getElementById('btnPlayQuizAudio')?.addEventListener('click', () => {
       const currentWord = document.getElementById('quizWord').textContent;
@@ -48,6 +51,13 @@ const App = {
       const sentence = document.getElementById('quizSentenceEn')?.textContent || '';
       if (sentence) this.speakEnglish(sentence);
     });
+  },
+
+  updateVersionInfo() {
+    const versionEl = document.getElementById('appVersion');
+    const lastUpdatedEl = document.getElementById('appLastUpdated');
+    if (versionEl) versionEl.textContent = APP_VERSION;
+    if (lastUpdatedEl) lastUpdatedEl.textContent = APP_LAST_UPDATED;
   },
 
   prepareTTS() {

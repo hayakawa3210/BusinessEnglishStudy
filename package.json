@@ -1,0 +1,8 @@
+{
+  "name": "business-english-study",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "generate-metadata": "node script/gen-app-metadata.js"
+  }
+}

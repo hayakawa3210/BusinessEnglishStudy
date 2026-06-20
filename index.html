@@ -225,7 +225,11 @@
         </div>
         <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 16px;">
           <h3 style="margin:0 0 8px;">現在のステータス</h3>
-          <p style="margin:0; color: var(--color-text-muted);">この操作は学習データとニュース保存を消去しません。</p>
+          <p style="margin:0 0 12px; color: var(--color-text-muted);">この操作は学習データとニュース保存を消去しません。</p>
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.95rem; color:var(--color-text-muted);">
+            <div>Version: <strong id="appVersion">0.0.X</strong></div>
+            <div>Last Updated: <strong id="appLastUpdated">読み込み中...</strong></div>
+          </div>
         </div>
       </div>
     </main>
@@ -237,6 +241,7 @@
   </div>
 
   <script src="js/vocab.js?v=20260620"></script>
+  <script src="js/app-metadata.js?v=20260620"></script>
   <script src="js/app.js?v=20260620"></script>
 </body>
 </html>
