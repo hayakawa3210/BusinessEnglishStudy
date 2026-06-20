@@ -287,6 +287,8 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     document.getElementById('quizProgressInfo').textContent = `Question ${this.state.currentQuizIndex + 1} / 20`;
     document.getElementById('vocabProgressBar').style.width = `${(this.state.currentQuizIndex / 20) * 100}%`;
     document.getElementById('quizWord').textContent = currentQuiz.w;
+    // Show phonetic under the word for quick reference
+    const phonEl = document.getElementById('quizPhoneticInline'); if (phonEl) phonEl.textContent = currentQuiz.p || '';
     const wrongOptions = VOCABULARY_POOL.filter(v => v.w !== currentQuiz.w);
     const selectedOptions = this.shuffle([currentQuiz.m, wrongOptions[0]?.m, wrongOptions[1]?.m, wrongOptions[2]?.m].filter(Boolean));
     document.getElementById('optionsContainer').innerHTML = selectedOptions.map(option => `<button class="btn-option" onclick="App.handleAnswer(this, '${option}')">${option}</button>`).join('');
