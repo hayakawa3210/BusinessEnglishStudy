@@ -709,6 +709,20 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     alert('🎉 今日の全レッスンステップをクリアしました！素晴らしい集中力です！');
   },
 
+  async clearAppCache() {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+    }
+    const cacheNames = await caches.keys();
+    const deletePromises = cacheNames
+      .filter(name => name.toLowerCase().includes('bizeng10') || name.toLowerCase().includes('bizeng'))
+      .map(name => caches.delete(name));
+    await Promise.all(deletePromises);
+    alert('キャッシュを削除しました。ページを再読み込みします。進捗とニュースはそのまま維持されます。');
+    window.location.reload();
+  },
+
   addGlobalScore(pts) { const el = document.getElementById('scoreValue'); el.textContent = `${parseInt(el.textContent) + pts} pts`; },
 
   actions: {
@@ -740,7 +754,8 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
       ctx.state.currentLessonStep = 1; ctx.renderLessonList(); ctx.switchScreen('home');
     },
     'progress': () => alert('Progress Menu'),
-    'settings': () => alert('Settings Menu')
+    'settings': (ctx) => ctx.switchScreen('settings'),
+    'clear-cache': (ctx) => ctx.clearAppCache()
   }
 };
 

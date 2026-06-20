@@ -194,6 +194,21 @@
       <div id="historyLogList" style="display: flex; flex-direction: column; gap: 4px;"></div>
     </main>
 
+    <main id="settingsScreen" class="screen">
+      <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>設定</h2></header>
+      <div class="settings-panel" style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 16px;">
+          <h3 style="margin:0 0 8px;">キャッシュ削除</h3>
+          <p style="margin:0 0 12px; color: var(--color-text-muted);">Service Worker とアプリ資産のキャッシュを削除します。進捗や保存済みニュースはそのまま残ります。</p>
+          <button class="btn-round" data-action="clear-cache" style="background: var(--color-danger); color:#fff;">キャッシュを削除して再読み込み</button>
+        </div>
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 16px;">
+          <h3 style="margin:0 0 8px;">現在のステータス</h3>
+          <p style="margin:0; color: var(--color-text-muted);">この操作は学習データとニュース保存を消去しません。</p>
+        </div>
+      </div>
+    </main>
+
     <section class="status-bar">
       <div class="status-item"><span class="status-label">Today's Streak</span><span class="status-value highlight" id="streakValue">0 days</span></div>
       <div class="status-item"><span class="status-label">Today's Score</span><span class="status-value" id="scoreValue">0 pts</span></div>
