@@ -232,17 +232,25 @@ const App = {
     }).join('');
   },
 
-async callGeminiAPI(apiKey, contents, isJson = false) {
+async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
-  const config = isJson ? { responseMimeType: "application/json" } : {};
-  
+  // sensible defaults to increase variation
+  const defaultGenConfig = {
+    temperature: 0.9,
+    topP: 0.95,
+    maxOutputTokens: 800,
+    candidateCount: 1
+  };
+  const generationConfig = Object.assign({}, defaultGenConfig, genConfig);
+  if (isJson) generationConfig.responseMimeType = "application/json";
+
   const response = await fetch(url, {
     method: 'POST', 
     headers: { 
       'Content-Type': 'application/json',
       'x-goog-api-key': apiKey
     },
-    body: JSON.stringify({ contents: contents, generationConfig: config })
+    body: JSON.stringify({ contents: contents, generationConfig })
   });
 
   if (!response.ok) {
@@ -251,7 +259,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
   }
   
   const data = await response.json();
-  return data.candidates[0].content.parts[0].text;
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data);
 },
 
   startTodayLessonWorkflow() { this.state.lessonStartTime = new Date(); this.switchScreen('lesson'); },
@@ -327,16 +335,60 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
   async handleNewsGeneration() {
     const key = document.getElementById('apiKeyInput').value.trim(); if(!key) return alert('APIキーを入力してください');
     localStorage.setItem('gemini_key', key); document.getElementById('apiKeyBlock').style.display = 'none'; document.getElementById('newsLoader').style.display = 'block';
-
-    const promptText = "Generate one short English business news article. Output strictly in JSON format matching this schema: { 'title': 'English Title', 'body': 'English news body text (about 3 sentences)', 'summary_ja': 'Detailed Japanese summary', 'difficulty': 'Intermediate', 'toeic': '700+', 'words': [ {'word': 'word1', 'meaning': 'meaning1'}, {'word': 'word2', 'meaning': 'meaning2'}, {'word': 'word3', 'meaning': 'meaning3'}, {'word': 'word4', 'meaning': 'meaning4'}, {'word': 'word5', 'meaning': 'meaning5'} ], 'quizzes': [ {'question': 'Question1?', 'options': ['A', 'B', 'C', 'D'], 'answer': 'A'}, {'question': 'Question2?', 'options': ['A','B','C','D'], 'answer': 'B'}, {'question': 'Question3?', 'options': ['A','B','C','D'], 'answer': 'C'} ] }";
+    // Add a small random jitter to the prompt so the model produces varied output each call
+    const jitter = Math.random().toString(36).slice(2,8);
+    let promptText = "Generate one short English business news article. Output strictly in JSON format matching this schema: { 'title': 'English Title', 'body': 'English news body text (about 3 sentences)', 'summary_ja': 'Detailed Japanese summary', 'difficulty': 'Intermediate', 'toeic': '700+', 'words': [ {'word': 'word1', 'meaning': 'meaning1'}, {'word': 'word2', 'meaning': 'meaning2'}, {'word': 'word3', 'meaning': 'meaning3'}, {'word': 'word4', 'meaning': 'meaning4'}, {'word': 'word5', 'meaning': 'meaning5'} ], 'quizzes': [ {'question': 'Question1?', 'options': ['A', 'B', 'C', 'D'], 'answer': 'A'}, {'question': 'Question2?', 'options': ['A','B','C','D'], 'answer': 'B'}, {'question': 'Question3?', 'options': ['A','B','C','D'], 'answer': 'C'} ] }";
+    promptText += `\n\nVariation seed: ${jitter} — please vary names, numbers, and details accordingly.`;
     try {
-      const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true);
-      this.state.newsData = JSON.parse(jsonText); this.state.currentNewsQuizIndex = 0; this.state.todayNews++;
+      const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true, { temperature: 0.9, topP: 0.95 });
+      let parsed;
+      try {
+        parsed = this.safeParseJson(jsonText);
+      } catch (parseErr) {
+        console.error('Failed to parse JSON from model output:', parseErr, '\nRaw output:\n', jsonText);
+        alert('ニュース取得エラー:\n生成結果がJSONとして解析できませんでした。コンソールログを確認してください。');
+        document.getElementById('apiKeyBlock').style.display = 'flex'; document.getElementById('newsLoader').style.display = 'none';
+        return;
+      }
+
+      this.state.newsData = parsed; this.state.currentNewsQuizIndex = 0; this.state.todayNews++;
       // save generated news into local cache for later reading
       try { this.saveNewsToCache(this.state.newsData); } catch(e) { console.warn('failed to cache news', e); }
       this.renderNewsContent();
     } catch (e) {
       alert(`ニュース取得エラー:\n${e.message}`); document.getElementById('apiKeyBlock').style.display = 'flex'; document.getElementById('newsLoader').style.display = 'none';
+    }
+  },
+
+  // Try to safely extract JSON object/array from a potentially noisy text
+  safeParseJson(text) {
+    if (!text || typeof text !== 'string') throw new Error('empty response');
+    // quick try
+    try { return JSON.parse(text); } catch (e) {
+      // clean code fences and common wrappers
+      let cleaned = text.replace(/```json|```/g, '').trim();
+      // attempt to find the largest {...} block
+      const firstObj = cleaned.indexOf('{');
+      const lastObj = cleaned.lastIndexOf('}');
+      if (firstObj !== -1 && lastObj !== -1 && lastObj > firstObj) {
+        const sub = cleaned.slice(firstObj, lastObj + 1);
+        try { return JSON.parse(sub); } catch (e2) { /* fallthrough */ }
+      }
+      // attempt to find array
+      const firstArr = cleaned.indexOf('[');
+      const lastArr = cleaned.lastIndexOf(']');
+      if (firstArr !== -1 && lastArr !== -1 && lastArr > firstArr) {
+        const sub2 = cleaned.slice(firstArr, lastArr + 1);
+        try { return JSON.parse(sub2); } catch (e3) { /* fallthrough */ }
+      }
+      // As a last resort, try to extract using a regex for {...}
+      const match = cleaned.match(/\{[\s\S]*\}/m);
+      if (match) {
+        try { return JSON.parse(match[0]); } catch (e4) { /* fallthrough */ }
+      }
+      const err = new Error('Unable to parse JSON from response');
+      err.raw = cleaned;
+      throw err;
     }
   },
 
