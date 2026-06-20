@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bizeng10-v2';
+const CACHE_NAME = 'bizeng10-v3';
 const ASSETS_TO_CACHE = [
   'index.html',
   'manifest.json',
