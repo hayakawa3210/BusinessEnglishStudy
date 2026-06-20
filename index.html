@@ -83,7 +83,13 @@
       <div class="result-box" id="resultBox">
         <div class="result-header" id="resultHeader">〇 正解</div>
         <div class="meta-row">発音記号: <span class="phonetic" id="quizPhonetic">/---/</span></div>
-        <div class="sentence-box"><p class="sentence-en" id="quizSentenceEn">Example...</p><p class="sentence-ja" id="quizSentenceJa">訳...</p></div>
+        <div class="sentence-box">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <p class="sentence-en" id="quizSentenceEn" style="margin:0;">Example...</p>
+            <button id="btnPlaySentenceAudio" class="btn-audio" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 5px; line-height: 1;">🔊</button>
+          </div>
+          <p class="sentence-ja" id="quizSentenceJa">訳...</p>
+        </div>
       </div>
       
       <div class="quiz-actions" id="quizActions" style="display: none;">

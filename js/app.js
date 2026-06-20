@@ -40,6 +40,11 @@ const App = {
         this.speakEnglish(currentWord);
         }
     });
+    // 例文を読み上げるボタン
+    document.getElementById('btnPlaySentenceAudio')?.addEventListener('click', () => {
+      const sentence = document.getElementById('quizSentenceEn')?.textContent || '';
+      if (sentence) this.speakEnglish(sentence);
+    });
     
     // 端末の音声リストをあらかじめロードしておく（一部ブラウザのバグ対策）
     if ('speechSynthesis' in window) {
