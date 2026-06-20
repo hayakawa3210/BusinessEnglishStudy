@@ -54,8 +54,12 @@ const App = {
     
     // 端末の音声リストをあらかじめロードしておく（一部ブラウザのバグ対策）
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.getVoices();
-    }    
+      window.speechSynthesis.getVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+      }
+    }
+
   },
 
   // 英語のテキストを音声で読み上げる共通関数
@@ -421,7 +425,7 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
         ];
         const aiResponse = await this.callGeminiAPI(key, promptContext);
         this.state.chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-        this.appendChatBubble(aiResponse, 'ai'); this.appendChatBubble(`第${this.state.chatTurnCount + 1}往復 / 全5回', 'system'`);
+        this.appendChatBubble(aiResponse, 'ai'); this.appendChatBubble(`第${this.state.chatTurnCount + 1}往復 / 全5回`, 'system');
       } else {
         this.state.isChatActive = false;
         this.appendChatBubble("5往復終了。フィードバックを抽出中...", "system");
@@ -483,26 +487,27 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
 
   addGlobalScore(pts) { const el = document.getElementById('scoreValue'); el.textContent = `${parseInt(el.textContent) + pts} pts`; },
 
-// 🔊 英語のテキストを音声で読み上げる共通関数
+// 英語のテキストを音声で読み上げる共通関数
 speakEnglish(text) {
-  // ブラウザが音声合成に対応しているかチェック
-  if (!('speechSynthesis' in window)) {
-    alert('お使いのブラウザは音声読み上げに対応していません。');
-    return;
-  }
-
-  // 再生中の音声を一度停止
+  if (!('speechSynthesis' in window)) return;
+  
+  // 再生中の音声をクリア
   window.speechSynthesis.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US'; // アメリカ英語に設定（イギリス英語なら 'en-GB'）
-  utterance.rate = 0.9;     // 読み上げ速度（0.8〜1.0 あたりが学習に最適）
-  utterance.pitch = 1.0;    // 声の高さ
+  // 空文字や初期文字の場合は鳴らさない
+  if (!text || text === '---') return;
 
-  // 端末で利用可能な英語の「ネイティブの女性/男性の声」を自動選択する設定
-  const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(v => v.lang.startsWith('en'));
-  if (englishVoice) utterance.voice = englishVoice;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.9;
+
+  // 💡 スマホ対策：音声リストをその場で取得し、確実に英語の音声をセットする
+  let voices = window.speechSynthesis.getVoices();
+  let englishVoice = voices.find(v => v.lang.startsWith('en') && v.localService === true) || voices.find(v => v.lang.startsWith('en'));
+  
+  if (englishVoice) {
+    utterance.voice = englishVoice;
+  }
 
   window.speechSynthesis.speak(utterance);
 },
