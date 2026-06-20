@@ -58,7 +58,7 @@ const App = {
       const voices = window.speechSynthesis.getVoices() || [];
       if (voices.length) {
         this.ttsVoices = voices;
-        console.debug('TTS voices loaded:', voices.map(v => `${v.name} (${v.lang})`));
+        console.log('TTS voices loaded:', voices.map(v => `${v.name} (${v.lang})`));
       }
     };
 
@@ -107,11 +107,11 @@ const App = {
     };
 
     const speakRaw = (utter) => {
-      utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
-      utter.onend = () => console.debug('TTS onend');
-      utter.onpause = () => console.debug('TTS onpause');
-      utter.onresume = () => console.debug('TTS onresume');
-      utter.onboundary = (event) => console.debug('TTS onboundary', event.name, event.charIndex, event.charLength);
+      utter.onstart = () => console.log('TTS onstart', utter.voice?.name || 'default');
+      utter.onend = () => console.log('TTS onend');
+      utter.onpause = () => console.log('TTS onpause');
+      utter.onresume = () => console.log('TTS onresume');
+      utter.onboundary = (event) => console.log('TTS onboundary', event.name, event.charIndex, event.charLength);
       utter.onerror = (ev) => {
         console.error('TTS onerror', ev, 'voice:', utter.voice?.name, utter.voice?.lang);
         if (!fallbackTried) {
@@ -128,7 +128,7 @@ const App = {
         window.speechSynthesis.cancel();
         setTimeout(() => {
           window.speechSynthesis.speak(utter);
-          console.debug('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume });
+          console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume });
         }, 20);
       } catch (e) {
         console.error('TTS speak threw', e);
@@ -141,7 +141,7 @@ const App = {
 
     const initial = createUtterance(chosenVoice);
     if (chosenVoice) {
-      console.debug('Selected voice:', chosenVoice.name, chosenVoice.lang, 'local:', chosenVoice.localService);
+      console.log('Selected voice:', chosenVoice.name, chosenVoice.lang, 'local:', chosenVoice.localService);
     } else {
       console.warn('No English voice available, speaking with default voice');
     }
