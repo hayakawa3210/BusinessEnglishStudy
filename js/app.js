@@ -84,9 +84,7 @@ const App = {
       'english (us)',
       'english',
       'en_us',
-      'en-us',
-      'en_au',
-      'en-au'
+      'en-us'
     ];
 
     const sortedVoices = [];
@@ -127,7 +125,7 @@ const App = {
 
     const createUtterance = (voice) => {
       const utter = new SpeechSynthesisUtterance(speechText);
-      utter.lang = voice?.lang || lang;
+      utter.lang = voice ? voice.lang : lang;
       utter.rate = rate;
       utter.volume = 1.0;
       utter.pitch = 1.0;
