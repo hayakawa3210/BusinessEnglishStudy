@@ -332,6 +332,8 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
     try {
       const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true);
       this.state.newsData = JSON.parse(jsonText); this.state.currentNewsQuizIndex = 0; this.state.todayNews++;
+      // save generated news into local cache for later reading
+      try { this.saveNewsToCache(this.state.newsData); } catch(e) { console.warn('failed to cache news', e); }
       this.renderNewsContent();
     } catch (e) {
       alert(`ニュース取得エラー:\n${e.message}`); document.getElementById('apiKeyBlock').style.display = 'flex'; document.getElementById('newsLoader').style.display = 'none';
@@ -355,6 +357,89 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
     document.getElementById('newsSummaryJa').textContent = data.summary_ja;
     document.getElementById('newsVocabList').innerHTML = data.words.map(w => `<div class="vocab-row-item"><span class="vocab-word-bold">${w.word}</span><span>${w.meaning}</span></div>`).join('');
     this.loadNewsQuiz();
+  },
+
+  // --- Cached news utilities ---------------------------------------------
+  saveNewsToCache(news) {
+    try {
+      const key = 'cachedNews';
+      const list = JSON.parse(localStorage.getItem(key) || '[]');
+      const entry = {
+        id: `news_${Date.now()}`,
+        savedAt: new Date().toISOString(),
+        title: news.title || '(no title)',
+        body: news.body || '',
+        difficulty: news.difficulty || '',
+        toeic: news.toeic || '',
+        words: news.words || [],
+        quizzes: news.quizzes || [],
+        raw: news
+      };
+      list.unshift(entry);
+      // keep recent 50
+      if (list.length > 50) list.length = 50;
+      localStorage.setItem(key, JSON.stringify(list));
+      console.log('News cached:', entry.id, entry.title);
+      return entry.id;
+    } catch (e) {
+      console.error('saveNewsToCache error', e);
+      return null;
+    }
+  },
+
+  getCachedNewsList() {
+    try {
+      return JSON.parse(localStorage.getItem('cachedNews') || '[]');
+    } catch (e) {
+      console.error('getCachedNewsList error', e);
+      return [];
+    }
+  },
+
+  renderCachedNewsList() {
+    const list = this.getCachedNewsList();
+    const container = document.getElementById('cachedNewsList');
+    if (!container) {
+      // If no UI, just log and return
+      console.log('Cached news list:', list);
+      alert(`保存済みニュース件数: ${list.length} 件（コンソール参照）`);
+      return;
+    }
+
+    // Ensure news content area is visible so the list can be seen
+    const newsBody = document.getElementById('newsContentBody');
+    if (newsBody && newsBody.style.display === 'none') {
+      newsBody.style.display = 'block';
+    }
+
+    // make sure container is visible
+    container.style.display = 'block';
+
+    if (list.length === 0) {
+      container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--color-text-muted);">保存済みニュースがありません</p>';
+      return;
+    }
+
+    container.innerHTML = list.map(item => `
+      <div class="cached-news-item" style="border-bottom:1px solid var(--color-border); padding:8px 0;">
+        <div class="cached-news-meta" style="font-size:0.8rem; color:var(--color-text-muted);">${item.savedAt} · ${item.difficulty} · ${item.toeic}</div>
+        <div class="cached-news-title" style="font-weight:700; margin:4px 0;">${item.title}</div>
+        <div class="cached-news-actions"><button class="btn" onclick="App.loadCachedNews('${item.id}')">表示</button></div>
+      </div>
+    `).join('');
+    // scroll into view
+    container.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  loadCachedNews(id) {
+    const list = this.getCachedNewsList();
+    const entry = list.find(i => i.id === id);
+    if (!entry) return alert('指定のニュースが見つかりません');
+    // restore into state.newsData using the original raw object if present
+    this.state.newsData = entry.raw || { title: entry.title, body: entry.body, words: entry.words, quizzes: entry.quizzes, difficulty: entry.difficulty, toeic: entry.toeic, summary_ja: '' };
+    this.state.currentNewsQuizIndex = 0;
+    this.renderNewsContent();
+    this.switchScreen('news');
   },
 
   loadNewsQuiz() {

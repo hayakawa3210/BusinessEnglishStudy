@@ -91,6 +91,9 @@
 
     <main id="newsScreen" class="screen">
       <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Business News</h2></header>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin:8px 12px;">
+        <button class="btn-round" onclick="App.renderCachedNewsList()">保存済みニュース</button>
+      </div>
       <div class="api-key-overlay" id="apiKeyBlock">
         <p style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted);">Gemini APIキーを入力してニュースを取得：</p>
         <input type="password" id="apiKeyInput" class="api-input" placeholder="AIzaSy...">
@@ -118,6 +121,7 @@
           <div class="quiz-info" id="newsQuizNumber">Question 1 / 3</div>
           <div id="newsQuizContainer"></div>
         </div>
+        <div id="cachedNewsList" style="margin-top:16px;"></div>
       </div>
     </main>
 
