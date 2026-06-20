@@ -4,8 +4,9 @@
 const LESSON_STEPS = [
   { id: 1, name: 'Vocabulary', type: 'Lesson 1' },
   { id: 2, name: 'News', type: 'Lesson 2' },
-  { id: 3, name: 'Conversation', type: 'Lesson 3' },
-  { id: 4, name: 'Writing', type: 'Lesson 4' }
+  { id: 3, name: 'Shadowing', type: 'Lesson 3' },
+  { id: 4, name: 'Conversation', type: 'Lesson 4' },
+  { id: 5, name: 'Writing', type: 'Lesson 5' }
 ];
 
 let deferredPrompt = null;
@@ -16,7 +17,8 @@ const App = {
     quizList: [], currentQuizIndex: 0, hasAnswered: false, scoreIncrement: 0,
     newsData: null, currentNewsQuizIndex: 0,
     chatTurnCount: 0, chatHistory: [], isChatActive: true,
-    todayWords: 0, todayNews: 0, todayConv: 0, todayWriting: 0,
+    todayWords: 0, todayNews: 0, todayShadow: 0, todayConv: 0, todayWriting: 0,
+    currentShadowIndex: 0,
     lessonStartTime: null
   },
 
@@ -241,18 +243,19 @@ const App = {
     const todayStr = this.getTodayDateString();
 
     if (!logs[todayStr]) {
-      logs[todayStr] = { words: 0, news: 0, conversation: 0, writing: 0, minutes: 0 };
+      logs[todayStr] = { words: 0, news: 0, shadowing: 0, conversation: 0, writing: 0, minutes: 0 };
     }
 
     logs[todayStr].words += this.state.todayWords;
     logs[todayStr].news += this.state.todayNews;
+    logs[todayStr].shadowing += this.state.todayShadow;
     logs[todayStr].conversation += this.state.todayConv;
     logs[todayStr].writing += this.state.todayWriting;
     logs[todayStr].minutes += sessionMinutes;
 
     localStorage.setItem('learningLogs', JSON.stringify(logs));
 
-    this.state.todayWords = 0; this.state.todayNews = 0; this.state.todayConv = 0; this.state.todayWriting = 0;
+    this.state.todayWords = 0; this.state.todayNews = 0; this.state.todayShadow = 0; this.state.todayConv = 0; this.state.todayWriting = 0;
     this.loadDashboardData();
   },
 
@@ -376,6 +379,56 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     this.state.quizList = this.shuffle(doublePool).slice(0, 10);
     this.state.currentQuizIndex = 0; this.state.scoreIncrement = 0;
     this.switchScreen('vocab'); this.loadQuiz();
+  },
+
+  startShadowing() {
+    this.state.currentShadowIndex = 0;
+    this.state.currentLessonStep = 3;
+    this.renderLessonList();
+    this.switchScreen('shadowing');
+    this.loadShadowingSentence();
+  },
+
+  loadShadowingSentence() {
+    const total = SHADOWING_SENTENCES.length;
+    if (!total) return;
+    const index = Math.min(Math.max(this.state.currentShadowIndex, 0), total - 1);
+    const sentence = SHADOWING_SENTENCES[index];
+    document.getElementById('shadowingCount').textContent = `${index + 1} / ${total}`;
+    document.getElementById('shadowingText').textContent = sentence.text;
+    document.getElementById('shadowingPhonetic').textContent = sentence.phonetic || '';
+    document.getElementById('shadowingTranslation').textContent = sentence.translation || '';
+  },
+
+  speakShadowingSentence() {
+    const sentence = SHADOWING_SENTENCES[this.state.currentShadowIndex];
+    if (!sentence) return;
+    this.speakEnglish(sentence.text);
+  },
+
+  nextShadowingSentence() {
+    if (this.state.currentShadowIndex < SHADOWING_SENTENCES.length - 1) {
+      this.state.currentShadowIndex += 1;
+      this.loadShadowingSentence();
+    } else {
+      this.finishShadowingLesson();
+    }
+  },
+
+  prevShadowingSentence() {
+    if (this.state.currentShadowIndex > 0) {
+      this.state.currentShadowIndex -= 1;
+      this.loadShadowingSentence();
+    }
+  },
+
+  finishShadowingLesson() {
+    this.state.todayShadow += 1;
+    alert('Shadowing終了! 10文のシャドーイングを完了しました。次のレッスンに進みます。');
+    this.addGlobalScore(30);
+    this.state.currentLessonStep = 4;
+    this.renderLessonList();
+    this.switchScreen('lesson');
   },
 
   loadQuiz() {
@@ -728,6 +781,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   actions: {
     'go-lesson': (ctx) => ctx.startTodayLessonWorkflow(),
     'go-vocab': (ctx) => ctx.startVocabulary(),
+    'go-shadow': (ctx) => ctx.startShadowing(),
     'go-news': (ctx) => ctx.switchScreen('news'),
     'go-conv': (ctx) => ctx.switchScreen('conv'),
     'go-writing': (ctx) => ctx.switchScreen('writing'),
@@ -737,6 +791,9 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     'vocab-next': (ctx) => ctx.nextQuiz(),
     'fetch-news-api': (ctx) => ctx.handleNewsGeneration(),
     'play-news-audio': (ctx) => ctx.playNewsAudio(),
+    'play-shadow-audio': (ctx) => ctx.speakShadowingSentence(),
+    'next-shadow': (ctx) => ctx.nextShadowingSentence(),
+    'prev-shadow': (ctx) => ctx.prevShadowingSentence(),
     'start-chat-api': (ctx) => ctx.startConversationLesson(),
     'play-chat-audio': (ctx) => ctx.playChatAudio(),
     'send-chat-msg': (ctx) => ctx.handleUserSendMessage(),

@@ -47,6 +47,7 @@
       <div class="menu-grid">
         <button class="btn-card primary" data-action="go-lesson"><span>Today's Lesson</span></button>
         <button class="btn-card" data-action="go-vocab"><span>Vocabulary</span></button>
+        <button class="btn-card" data-action="go-shadow"><span>Shadowing</span></button>
         <button class="btn-card" data-action="go-news"><span>News</span></button>
         <button class="btn-card" data-action="go-conv"><span>Conversation</span></button>
         <button class="btn-card" data-action="go-writing"><span>Writing</span></button>
@@ -95,6 +96,26 @@
       <div class="quiz-actions" id="quizActions" style="display: none;">
         <button class="btn-retry" data-action="vocab-retry">再挑戦</button>
         <button class="btn-next" id="vocabNextBtn" data-action="vocab-next">次へ</button>
+      </div>
+    </main>
+
+    <main id="shadowingScreen" class="screen">
+      <header class="screen-header"><button class="btn-back" data-action="go-home">←</button><h2>Shadowing</h2></header>
+      <div class="shadowing-container" style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+        <div class="shadowing-meta" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <span style="font-weight:700;">Shadowing Practice</span>
+          <span id="shadowingCount" style="font-size:0.95rem; color:var(--color-text-muted);">1 / 10</span>
+        </div>
+        <div class="shadowing-card" style="background: var(--color-surface); border:1px solid var(--color-border); border-radius: 18px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+          <p id="shadowingText" style="margin:0 0 16px; font-size:1.15rem; line-height:1.6; font-weight:700;">Loading sentence...</p>
+          <p id="shadowingPhonetic" style="margin:0 0 12px; color:var(--color-primary);">/---/</p>
+          <p id="shadowingTranslation" style="margin:0; color:var(--color-text-muted);">訳がここに表示されます。</p>
+        </div>
+        <div class="shadowing-actions" style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <button class="btn-round" data-action="prev-shadow" style="flex:1;">前へ</button>
+          <button class="btn-round" data-action="play-shadow-audio" style="flex:1;">🔊 読み上げ</button>
+          <button class="btn-round" data-action="next-shadow" style="flex:1;">次へ</button>
+        </div>
       </div>
     </main>
 
