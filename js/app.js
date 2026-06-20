@@ -77,7 +77,7 @@ const App = {
     let fallbackTried = false;
 
     const voices = this.ttsVoices.length ? this.ttsVoices : window.speechSynthesis.getVoices() || [];
-    const findVoice = (predicate) => voices.find(predicate);
+    const englishVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
     const preferredNames = [
       'google us english',
       'google uk english',
@@ -88,17 +88,38 @@ const App = {
       'en_au',
       'en-au'
     ];
-    const preferredVoice = voices.find(v => {
+
+    const sortedVoices = [];
+    const pushVoice = (voice) => {
+      if (!voice) return;
+      const key = `${voice.name}|${voice.lang}`;
+      if (!sortedVoices.some(v => `${v.name}|${v.lang}` === key)) sortedVoices.push(voice);
+    };
+
+    // Preferred named voices first
+    englishVoices.forEach(v => {
       const name = (v.name || '').toLowerCase();
       const lang = (v.lang || '').toLowerCase();
-      return preferredNames.some(keyword => name.includes(keyword) || lang.includes(keyword));
+      if (preferredNames.some(keyword => name.includes(keyword) || lang.includes(keyword))) {
+        pushVoice(v);
+      }
     });
-    const chosenVoice = preferredVoice ||
-                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us') && v.localService) ||
-                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us')) ||
-                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en') && v.localService) ||
-                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
-                        voices[0];
+    // Then prioritize local en-US voices
+    englishVoices.forEach(v => {
+      if (v.lang && v.lang.toLowerCase().startsWith('en-us') && v.localService) pushVoice(v);
+    });
+    // Then any en-US
+    englishVoices.forEach(v => {
+      if (v.lang && v.lang.toLowerCase().startsWith('en-us')) pushVoice(v);
+    });
+    // Then local en
+    englishVoices.forEach(v => {
+      if (v.lang && v.lang.toLowerCase().startsWith('en') && v.localService) pushVoice(v);
+    });
+    // Then any english voice
+    englishVoices.forEach(pushVoice);
+    // No explicit voice fallback
+    sortedVoices.push(null);
 
     const speechText = (typeof text === 'string' && text.trim().split(/\s+/).length === 1)
       ? `The word is ${text}`
@@ -106,7 +127,7 @@ const App = {
 
     const createUtterance = (voice) => {
       const utter = new SpeechSynthesisUtterance(speechText);
-      utter.lang = lang;
+      utter.lang = voice?.lang || lang;
       utter.rate = rate;
       utter.volume = 1.0;
       utter.pitch = 1.0;
@@ -114,7 +135,16 @@ const App = {
       return utter;
     };
 
-    const speakRaw = (utter) => {
+    const speakWithCandidate = (index) => {
+      if (index >= sortedVoices.length) {
+        console.error('TTS failed for all voice candidates');
+        return;
+      }
+      const voice = sortedVoices[index];
+      const candidateText = speechText;
+      const utter = createUtterance(voice);
+      console.log('Trying TTS voice candidate', index + 1, 'of', sortedVoices.length, 'voice:', voice ? voice.name : '(default)', 'lang:', utter.lang);
+
       utter.onstart = () => console.log('TTS onstart', utter.voice?.name || 'default');
       utter.onend = () => console.log('TTS onend');
       utter.onpause = () => console.log('TTS onpause');
@@ -122,15 +152,8 @@ const App = {
       utter.onboundary = (event) => console.log('TTS onboundary', event.name, event.charIndex, event.charLength);
       utter.onerror = (ev) => {
         console.error('TTS onerror', ev, 'voice:', utter.voice?.name, utter.voice?.lang);
-        if (!fallbackTried) {
-          fallbackTried = true;
-          if (utter.voice) {
-            console.warn('Retrying with same text but no explicit voice');
-            speakRaw(createUtterance());
-          } else {
-            console.warn('TTS failed even without explicit voice');
-          }
-        }
+        console.warn('Trying next voice candidate');
+        setTimeout(() => speakWithCandidate(index + 1), 50);
       };
 
       try {
@@ -139,23 +162,14 @@ const App = {
         }
         try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
         window.speechSynthesis.speak(utter);
-        console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume, text: speechText });
+        console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume, text: candidateText });
       } catch (e) {
         console.error('TTS speak threw', e);
-        if (!fallbackTried) {
-          fallbackTried = true;
-          speakRaw(createUtterance());
-        }
+        setTimeout(() => speakWithCandidate(index + 1), 50);
       }
     };
 
-    const initial = createUtterance(chosenVoice);
-    if (chosenVoice) {
-      console.log('Selected voice:', chosenVoice.name, chosenVoice.lang, 'local:', chosenVoice.localService);
-    } else {
-      console.warn('No English voice available, speaking with default voice');
-    }
-    speakRaw(initial);
+    speakWithCandidate(0);
   },
 
   playNewsAudio() {
