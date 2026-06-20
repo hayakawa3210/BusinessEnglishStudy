@@ -83,6 +83,10 @@ const App = {
       'google uk english',
       'english (us)',
       'english',
+      'en_us',
+      'en-us',
+      'en_au',
+      'en-au'
     ];
     const preferredVoice = voices.find(v => {
       const name = (v.name || '').toLowerCase();
@@ -96,8 +100,12 @@ const App = {
                         findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
                         voices[0];
 
+    const speechText = (typeof text === 'string' && text.trim().split(/\s+/).length === 1)
+      ? `The word is ${text}`
+      : text;
+
     const createUtterance = (voice) => {
-      const utter = new SpeechSynthesisUtterance(text);
+      const utter = new SpeechSynthesisUtterance(speechText);
       utter.lang = lang;
       utter.rate = rate;
       utter.volume = 1.0;
@@ -117,19 +125,20 @@ const App = {
         if (!fallbackTried) {
           fallbackTried = true;
           if (utter.voice) {
-            console.warn('Retrying without explicit voice selection');
+            console.warn('Retrying with same text but no explicit voice');
             speakRaw(createUtterance());
           } else {
             console.warn('TTS failed even without explicit voice');
           }
         }
       };
+
       try {
         window.speechSynthesis.cancel();
         setTimeout(() => {
           window.speechSynthesis.speak(utter);
-          console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume });
-        }, 20);
+          console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume, text: speechText });
+        }, 100);
       } catch (e) {
         console.error('TTS speak threw', e);
         if (!fallbackTried) {
