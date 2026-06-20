@@ -514,20 +514,44 @@ speakEnglish(text) {
   };
 
   const doSpeak = (voices) => {
+    console.log('TTS voices:', voices.map(v => ({ name: v.name, lang: v.lang, local: v.localService })));
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
     utterance.rate = 0.9;
 
     // 💡 スマホ対策：ローカルサービスの英語音声を優先、なければ英語、それもなければデフォルト
-    const englishVoice = voices.find(v => v.lang.startsWith('en') && v.localService === true) || 
-                        voices.find(v => v.lang.startsWith('en')) ||
+    const englishVoice = voices.find(v => v.lang && v.lang.startsWith && v.lang.startsWith('en') && v.localService === true) ||
+                        voices.find(v => v.lang && v.lang.startsWith && v.lang.startsWith('en')) ||
                         voices[0];
-    
+
     if (englishVoice) {
       utterance.voice = englishVoice;
+      console.log('Selected voice:', englishVoice.name, englishVoice.lang);
+    } else {
+      console.warn('No voice selected, voices list:', voices);
     }
 
-    window.speechSynthesis.speak(utterance);
+    utterance.onstart = () => { console.log('TTS onstart'); };
+    utterance.onend = () => { console.log('TTS onend'); };
+    utterance.onerror = (ev) => { console.error('TTS onerror', ev); try { alert('TTS エラー: ' + (ev.error || JSON.stringify(ev))); } catch(e){} };
+
+    try {
+      if (window.speechSynthesis.paused) {
+        try { window.speechSynthesis.resume(); } catch(e) { console.warn('resume() failed', e); }
+      }
+      // cancel() は既に呼ばれている想定。小さな遅延を入れて speak() を呼ぶと安定しやすい。
+      setTimeout(() => {
+        try {
+          window.speechSynthesis.speak(utterance);
+          console.log('speak() called');
+        } catch (e) {
+          console.error('speak() exception', e);
+          try { alert('speak() 実行エラー: ' + e.message); } catch(e){}
+        }
+      }, 60);
+    } catch (e) {
+      console.error('TTS start failed', e);
+    }
   };
 
   performSpeak();
