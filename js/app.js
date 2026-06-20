@@ -490,26 +490,47 @@ async callGeminiAPI(apiKey, contents, isJson = false) {
 // 英語のテキストを音声で読み上げる共通関数
 speakEnglish(text) {
   if (!('speechSynthesis' in window)) return;
-  
-  // 再生中の音声をクリア
-  window.speechSynthesis.cancel();
-
-  // 空文字や初期文字の場合は鳴らさない
   if (!text || text === '---') return;
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.9;
+  window.speechSynthesis.cancel();
 
-  // 💡 スマホ対策：音声リストをその場で取得し、確実に英語の音声をセットする
-  let voices = window.speechSynthesis.getVoices();
-  let englishVoice = voices.find(v => v.lang.startsWith('en') && v.localService === true) || voices.find(v => v.lang.startsWith('en'));
-  
-  if (englishVoice) {
-    utterance.voice = englishVoice;
-  }
+  const performSpeak = () => {
+    let voices = window.speechSynthesis.getVoices();
+    
+    // 音声がまだロードされていない場合、onvoiceschangedイベントを待つ
+    if (voices.length === 0) {
+      const handleVoicesChanged = () => {
+        voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          window.speechSynthesis.onvoiceschanged = null;
+          doSpeak(voices);
+        }
+      };
+      window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
+      return;
+    }
+    
+    doSpeak(voices);
+  };
 
-  window.speechSynthesis.speak(utterance);
+  const doSpeak = (voices) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+
+    // 💡 スマホ対策：ローカルサービスの英語音声を優先、なければ英語、それもなければデフォルト
+    const englishVoice = voices.find(v => v.lang.startsWith('en') && v.localService === true) || 
+                        voices.find(v => v.lang.startsWith('en')) ||
+                        voices[0];
+    
+    if (englishVoice) {
+      utterance.voice = englishVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  performSpeak();
 },
 
   actions: {
