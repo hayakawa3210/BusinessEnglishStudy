@@ -821,9 +821,43 @@ App.init();
 
 // Service Worker の登録
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then((reg) => console.log('ServiceWorker registered with scope: ', reg.scope))
-      .catch((err) => console.error('ServiceWorker registration failed: ', err));
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    console.log('New service worker controlling page, reloading');
+    window.location.reload();
   });
+
+  const registerServiceWorker = async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('sw.js');
+      console.log('ServiceWorker registered with scope: ', reg.scope);
+
+      if (reg.waiting) {
+        console.log('ServiceWorker waiting, activating immediately');
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('New ServiceWorker installed and waiting');
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+
+      setInterval(() => {
+        reg.update();
+      }, 60 * 60 * 1000);
+    } catch (err) {
+      console.error('ServiceWorker registration failed: ', err);
+    }
+  };
+
+  window.addEventListener('load', registerServiceWorker);
 }
