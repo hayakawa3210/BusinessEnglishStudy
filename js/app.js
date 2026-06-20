@@ -20,11 +20,14 @@ const App = {
     lessonStartTime: null
   },
 
+  ttsVoices: [],
+
   init() {
     this.bindEvents();
     this.renderLessonList();
     this.loadDashboardData();
     this.setupPWAInstallation();
+    this.prepareTTS();
     
     const savedKey = localStorage.getItem('gemini_key');
     if (savedKey) {
@@ -35,25 +38,33 @@ const App = {
     }
     // 💡 ここを追加！スピーカーボタンを押したら現在の単語を読み上げる
     document.getElementById('btnPlayQuizAudio')?.addEventListener('click', () => {
-        const currentWord = document.getElementById('quizWord').textContent;
-        if (currentWord) {
-        this.speakEnglish(currentWord);
-        }
+      const currentWord = document.getElementById('quizWord').textContent;
+      if (currentWord) this.speakEnglish(currentWord);
     });
     // 例文を読み上げるボタン
     document.getElementById('btnPlaySentenceAudio')?.addEventListener('click', () => {
       const sentence = document.getElementById('quizSentenceEn')?.textContent || '';
       if (sentence) this.speakEnglish(sentence);
     });
-    
-    // 端末の音声リストをあらかじめロードしておく（一部ブラウザのバグ対策）
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-      }
+  },
+
+  prepareTTS() {
+    if (!('speechSynthesis' in window)) {
+      console.warn('TTS is not available in this browser');
+      return;
     }
 
+    const updateVoices = () => {
+      const voices = window.speechSynthesis.getVoices() || [];
+      if (voices.length) {
+        this.ttsVoices = voices;
+        console.debug('TTS voices loaded:', voices.map(v => `${v.name} (${v.lang})`));
+      }
+    };
+
+    updateVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', updateVoices);
+    setTimeout(updateVoices, 2000);
   },
 
   // 英語のテキストを音声で読み上げる共通関数
@@ -64,67 +75,56 @@ const App = {
     const lang = opts.lang || 'en-US';
     const rate = typeof opts.rate === 'number' ? opts.rate : 0.95;
 
-    const waitForVoices = () => new Promise((resolve) => {
-      let voices = window.speechSynthesis.getVoices();
-      if (voices && voices.length) return resolve(voices);
-      const onVoices = () => {
-        voices = window.speechSynthesis.getVoices();
-        if (voices && voices.length) {
-          window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
-          resolve(voices);
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.rate = rate;
+
+    const voices = this.ttsVoices.length ? this.ttsVoices : window.speechSynthesis.getVoices() || [];
+    const chosenVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en') && v.localService) ||
+                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
+                        voices[0];
+    if (chosenVoice) {
+      utter.voice = chosenVoice;
+      console.debug('Selected voice:', chosenVoice.name, chosenVoice.lang, 'local:', chosenVoice.localService);
+    } else {
+      console.warn('No English voice available, speaking with default voice');
+    }
+
+    utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
+    utter.onend = () => console.debug('TTS onend');
+    utter.onerror = (ev) => {
+      console.error('TTS onerror', ev);
+      if (utter.voice) {
+        try {
+          const fallback = new SpeechSynthesisUtterance(text);
+          fallback.lang = lang;
+          fallback.rate = rate;
+          fallback.onstart = () => console.debug('TTS fallback onstart');
+          fallback.onerror = (e) => console.error('TTS fallback error', e);
+          window.speechSynthesis.speak(fallback);
+        } catch (e) {
+          console.error('TTS fallback failed', e);
         }
-      };
-      window.speechSynthesis.addEventListener('voiceschanged', onVoices);
-      // fallback timeout
-      setTimeout(() => {
-        window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
-        resolve(window.speechSynthesis.getVoices() || []);
-      }, 1500);
-    });
-
-    waitForVoices().then((voices) => {
-      try {
-        // try resuming (some mobile browsers need resume in user gesture context)
-        try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
-
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = lang;
-        utter.rate = rate;
-
-        // prefer an English voice
-        const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en')) || voices[0];
-        if (enVoice) utter.voice = enVoice;
-
-        utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
-        utter.onend = () => console.debug('TTS onend');
-        utter.onerror = (ev) => {
-          console.error('TTS onerror', ev);
-          // try a fallback without explicit voice (some engines fail when a voice is set)
-          if (utter.voice) {
-            try {
-              const fb = new SpeechSynthesisUtterance(text);
-              fb.lang = lang; fb.rate = rate;
-              fb.onstart = () => console.debug('TTS fallback onstart');
-              fb.onerror = (e) => console.error('TTS fallback error', e);
-              window.speechSynthesis.speak(fb);
-            } catch (e) {
-              console.error('TTS fallback speak failed', e);
-            }
-          }
-        };
-
-        // small delay helps avoid immediate 'synthesis-failed' on some mobile browsers
-        setTimeout(() => {
-          try {
-            window.speechSynthesis.speak(utter);
-          } catch (e) {
-            console.error('TTS speak threw', e);
-          }
-        }, 50);
-      } catch (e) {
-        console.error('speakEnglish unexpected error', e);
       }
-    });
+    };
+
+    try {
+      window.speechSynthesis.speak(utter);
+    } catch (e) {
+      console.error('TTS speak threw', e);
+      try {
+        const fallback = new SpeechSynthesisUtterance(text);
+        fallback.lang = lang;
+        fallback.rate = rate;
+        window.speechSynthesis.speak(fallback);
+      } catch (fallbackError) {
+        console.error('TTS fallback speak threw', fallbackError);
+      }
+    }
   },
 
   playNewsAudio() {
