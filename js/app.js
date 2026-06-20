@@ -57,16 +57,74 @@ const App = {
   },
 
   // 英語のテキストを音声で読み上げる共通関数
-  speakEnglish(text) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.9;
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find(v => v.lang.startsWith('en'));
-    if (englishVoice) utterance.voice = englishVoice;
-    window.speechSynthesis.speak(utterance);
+  speakEnglish(text, opts = {}) {
+    if (!('speechSynthesis' in window)) { console.warn('TTS not supported in this browser'); return; }
+    if (!text) return;
+
+    const lang = opts.lang || 'en-US';
+    const rate = typeof opts.rate === 'number' ? opts.rate : 0.95;
+
+    const waitForVoices = () => new Promise((resolve) => {
+      let voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length) return resolve(voices);
+      const onVoices = () => {
+        voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length) {
+          window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
+          resolve(voices);
+        }
+      };
+      window.speechSynthesis.addEventListener('voiceschanged', onVoices);
+      // fallback timeout
+      setTimeout(() => {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
+        resolve(window.speechSynthesis.getVoices() || []);
+      }, 1500);
+    });
+
+    waitForVoices().then((voices) => {
+      try {
+        // try resuming (some mobile browsers need resume in user gesture context)
+        try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = lang;
+        utter.rate = rate;
+
+        // prefer an English voice
+        const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en')) || voices[0];
+        if (enVoice) utter.voice = enVoice;
+
+        utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
+        utter.onend = () => console.debug('TTS onend');
+        utter.onerror = (ev) => {
+          console.error('TTS onerror', ev);
+          // try a fallback without explicit voice (some engines fail when a voice is set)
+          if (utter.voice) {
+            try {
+              const fb = new SpeechSynthesisUtterance(text);
+              fb.lang = lang; fb.rate = rate;
+              fb.onstart = () => console.debug('TTS fallback onstart');
+              fb.onerror = (e) => console.error('TTS fallback error', e);
+              window.speechSynthesis.speak(fb);
+            } catch (e) {
+              console.error('TTS fallback speak failed', e);
+            }
+          }
+        };
+
+        // small delay helps avoid immediate 'synthesis-failed' on some mobile browsers
+        setTimeout(() => {
+          try {
+            window.speechSynthesis.speak(utter);
+          } catch (e) {
+            console.error('TTS speak threw', e);
+          }
+        }, 50);
+      } catch (e) {
+        console.error('speakEnglish unexpected error', e);
+      }
+    });
   },
 
   playNewsAudio() {
