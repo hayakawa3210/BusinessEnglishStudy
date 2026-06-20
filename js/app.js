@@ -119,9 +119,7 @@ const App = {
     // No explicit voice fallback
     sortedVoices.push(null);
 
-    const speechText = (typeof text === 'string' && text.trim().split(/\s+/).length === 1)
-      ? `The word is ${text}`
-      : text;
+    const speechText = text;
 
     const createUtterance = (voice) => {
       const utter = new SpeechSynthesisUtterance(speechText);
@@ -141,16 +139,9 @@ const App = {
       const voice = sortedVoices[index];
       const candidateText = speechText;
       const utter = createUtterance(voice);
-      console.log('Trying TTS voice candidate', index + 1, 'of', sortedVoices.length, 'voice:', voice ? voice.name : '(default)', 'lang:', utter.lang);
-
-      utter.onstart = () => console.log('TTS onstart', utter.voice?.name || 'default');
-      utter.onend = () => console.log('TTS onend');
-      utter.onpause = () => console.log('TTS onpause');
-      utter.onresume = () => console.log('TTS onresume');
-      utter.onboundary = (event) => console.log('TTS onboundary', event.name, event.charIndex, event.charLength);
+      // minimal handlers for production use
       utter.onerror = (ev) => {
-        console.error('TTS onerror', ev, 'voice:', utter.voice?.name, utter.voice?.lang);
-        console.warn('Trying next voice candidate');
+        console.error('TTS error', ev);
         setTimeout(() => speakWithCandidate(index + 1), 50);
       };
 
@@ -160,7 +151,6 @@ const App = {
         }
         try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
         window.speechSynthesis.speak(utter);
-        console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume, text: candidateText });
       } catch (e) {
         console.error('TTS speak threw', e);
         setTimeout(() => speakWithCandidate(index + 1), 50);
