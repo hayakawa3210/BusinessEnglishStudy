@@ -78,7 +78,19 @@ const App = {
 
     const voices = this.ttsVoices.length ? this.ttsVoices : window.speechSynthesis.getVoices() || [];
     const findVoice = (predicate) => voices.find(predicate);
-    const chosenVoice = findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us') && v.localService) ||
+    const preferredNames = [
+      'google us english',
+      'google uk english',
+      'english (us)',
+      'english',
+    ];
+    const preferredVoice = voices.find(v => {
+      const name = (v.name || '').toLowerCase();
+      const lang = (v.lang || '').toLowerCase();
+      return preferredNames.some(keyword => name.includes(keyword) || lang.includes(keyword));
+    });
+    const chosenVoice = preferredVoice ||
+                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us') && v.localService) ||
                         findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us')) ||
                         findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en') && v.localService) ||
                         findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
@@ -88,6 +100,8 @@ const App = {
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = lang;
       utter.rate = rate;
+      utter.volume = 1.0;
+      utter.pitch = 1.0;
       if (voice) utter.voice = voice;
       return utter;
     };
@@ -95,6 +109,9 @@ const App = {
     const speakRaw = (utter) => {
       utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
       utter.onend = () => console.debug('TTS onend');
+      utter.onpause = () => console.debug('TTS onpause');
+      utter.onresume = () => console.debug('TTS onresume');
+      utter.onboundary = (event) => console.debug('TTS onboundary', event.name, event.charIndex, event.charLength);
       utter.onerror = (ev) => {
         console.error('TTS onerror', ev, 'voice:', utter.voice?.name, utter.voice?.lang);
         if (!fallbackTried) {
@@ -108,10 +125,11 @@ const App = {
         }
       };
       try {
-        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-          window.speechSynthesis.cancel();
-        }
-        setTimeout(() => window.speechSynthesis.speak(utter), 20);
+        window.speechSynthesis.cancel();
+        setTimeout(() => {
+          window.speechSynthesis.speak(utter);
+          console.debug('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume });
+        }, 20);
       } catch (e) {
         console.error('TTS speak threw', e);
         if (!fallbackTried) {
