@@ -74,57 +74,60 @@ const App = {
 
     const lang = opts.lang || 'en-US';
     const rate = typeof opts.rate === 'number' ? opts.rate : 0.95;
-
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-    }
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang;
-    utter.rate = rate;
+    let fallbackTried = false;
 
     const voices = this.ttsVoices.length ? this.ttsVoices : window.speechSynthesis.getVoices() || [];
-    const chosenVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en') && v.localService) ||
-                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
+    const findVoice = (predicate) => voices.find(predicate);
+    const chosenVoice = findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us') && v.localService) ||
+                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en-us')) ||
+                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en') && v.localService) ||
+                        findVoice(v => v.lang && v.lang.toLowerCase().startsWith('en')) ||
                         voices[0];
-    if (chosenVoice) {
-      utter.voice = chosenVoice;
-      console.debug('Selected voice:', chosenVoice.name, chosenVoice.lang, 'local:', chosenVoice.localService);
-    } else {
-      console.warn('No English voice available, speaking with default voice');
-    }
 
-    utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
-    utter.onend = () => console.debug('TTS onend');
-    utter.onerror = (ev) => {
-      console.error('TTS onerror', ev);
-      if (utter.voice) {
-        try {
-          const fallback = new SpeechSynthesisUtterance(text);
-          fallback.lang = lang;
-          fallback.rate = rate;
-          fallback.onstart = () => console.debug('TTS fallback onstart');
-          fallback.onerror = (e) => console.error('TTS fallback error', e);
-          window.speechSynthesis.speak(fallback);
-        } catch (e) {
-          console.error('TTS fallback failed', e);
+    const createUtterance = (voice) => {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang;
+      utter.rate = rate;
+      if (voice) utter.voice = voice;
+      return utter;
+    };
+
+    const speakRaw = (utter) => {
+      utter.onstart = () => console.debug('TTS onstart', utter.voice?.name || 'default');
+      utter.onend = () => console.debug('TTS onend');
+      utter.onerror = (ev) => {
+        console.error('TTS onerror', ev, 'voice:', utter.voice?.name, utter.voice?.lang);
+        if (!fallbackTried) {
+          fallbackTried = true;
+          if (utter.voice) {
+            console.warn('Retrying without explicit voice selection');
+            speakRaw(createUtterance());
+          } else {
+            console.warn('TTS failed even without explicit voice');
+          }
+        }
+      };
+      try {
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.cancel();
+        }
+        setTimeout(() => window.speechSynthesis.speak(utter), 20);
+      } catch (e) {
+        console.error('TTS speak threw', e);
+        if (!fallbackTried) {
+          fallbackTried = true;
+          speakRaw(createUtterance());
         }
       }
     };
 
-    try {
-      window.speechSynthesis.speak(utter);
-    } catch (e) {
-      console.error('TTS speak threw', e);
-      try {
-        const fallback = new SpeechSynthesisUtterance(text);
-        fallback.lang = lang;
-        fallback.rate = rate;
-        window.speechSynthesis.speak(fallback);
-      } catch (fallbackError) {
-        console.error('TTS fallback speak threw', fallbackError);
-      }
+    const initial = createUtterance(chosenVoice);
+    if (chosenVoice) {
+      console.debug('Selected voice:', chosenVoice.name, chosenVoice.lang, 'local:', chosenVoice.localService);
+    } else {
+      console.warn('No English voice available, speaking with default voice');
     }
+    speakRaw(initial);
   },
 
   playNewsAudio() {
