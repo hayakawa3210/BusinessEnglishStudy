@@ -134,11 +134,12 @@ const App = {
       };
 
       try {
-        window.speechSynthesis.cancel();
-        setTimeout(() => {
-          window.speechSynthesis.speak(utter);
-          console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume, text: speechText });
-        }, 100);
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.cancel();
+        }
+        try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
+        window.speechSynthesis.speak(utter);
+        console.log('TTS speak invoked', { voice: utter.voice?.name, lang: utter.voice?.lang, pitch: utter.pitch, rate: utter.rate, volume: utter.volume, text: speechText });
       } catch (e) {
         console.error('TTS speak threw', e);
         if (!fallbackTried) {
