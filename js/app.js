@@ -41,7 +41,7 @@ const App = {
       });
     }
     this.updateVersionInfo();
-    // 💡 ここを追加！スピーカーボタンを押したら現在の単語を読み上げる
+    // スピーカーボタンを押したら現在の単語を読み上げる
     document.getElementById('btnPlayQuizAudio')?.addEventListener('click', () => {
       const currentWord = document.getElementById('quizWord').textContent;
       if (currentWord) this.speakEnglish(currentWord);
@@ -248,7 +248,10 @@ const App = {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   },
 
-  saveLearningLog(sessionMinutes) {
+  saveLearningLog(sessionMinutes = 0) {
+    const hasActivity = this.state.todayWords || this.state.todayNews || this.state.todayShadow || this.state.todayConv || this.state.todayWriting;
+    if (!hasActivity) return;
+
     const logs = JSON.parse(localStorage.getItem('learningLogs') || '{}');
     const todayStr = this.getTodayDateString();
 
@@ -434,6 +437,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   finishShadowingLesson() {
     this.state.todayShadow += 1;
+    this.saveLearningLog(0);
     alert('Shadowing終了! 10文のシャドーイングを完了しました。次のレッスンに進みます。');
     this.addGlobalScore(30);
     this.state.currentLessonStep = 4;
@@ -477,7 +481,9 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   nextQuiz() {
     if (this.state.currentQuizIndex < 9) { this.state.currentQuizIndex++; this.loadQuiz(); }
     else {
-      alert(`Vocabulary終了! スコア: +${this.state.scoreIncrement} pts`); this.addGlobalScore(this.state.scoreIncrement);
+      alert(`Vocabulary終了! スコア: +${this.state.scoreIncrement} pts`);
+      this.saveLearningLog(0);
+      this.addGlobalScore(this.state.scoreIncrement);
       this.state.currentLessonStep = 2; this.renderLessonList(); this.switchScreen('lesson');
     }
   },
@@ -502,6 +508,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
       }
 
       this.state.newsData = parsed; this.state.currentNewsQuizIndex = 0; this.state.todayNews++;
+      this.saveLearningLog(0);
       // save generated news into local cache for later reading
       try { this.saveNewsToCache(this.state.newsData); } catch(e) { console.warn('failed to cache news', e); }
       this.renderNewsContent();
@@ -735,7 +742,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     finally { document.getElementById('chatSendBtn').disabled = false; inputEl.disabled = false; if(this.state.isChatActive) inputEl.focus(); }
   },
 
-  finishConvLesson() { this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson'); },
+  finishConvLesson() { this.saveLearningLog(0); this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson'); },
 
   startWritingMode() { document.getElementById('writingInitBlock').style.display = 'none'; document.getElementById('writingArea').style.display = 'flex'; document.getElementById('writingFeedbackArea').style.display = 'none'; },
   async submitWritingLesson() {
@@ -768,6 +775,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   },
 
   finishWritingLesson() {
+    this.saveLearningLog(0);
     this.addGlobalScore(100); this.state.currentLessonStep = 5; this.updateLessonUI(); this.switchScreen('lesson');
     alert('🎉 今日の全レッスンステップをクリアしました！素晴らしい集中力です！');
   },
