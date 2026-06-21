@@ -550,6 +550,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     document.getElementById('shadowingText').textContent = sentence.text;
     document.getElementById('shadowingPhonetic').textContent = sentence.phonetic || '';
     document.getElementById('shadowingTranslation').textContent = sentence.translation || '';
+    document.getElementById('shadowingGrammar').textContent = sentence.grammar || 'この文には追加の文法ノートがありません。';
   },
 
   speakShadowingSentence(rate = 0.95) {
