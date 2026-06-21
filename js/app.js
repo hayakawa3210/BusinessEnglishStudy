@@ -426,10 +426,10 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     document.getElementById('shadowingTranslation').textContent = sentence.translation || '';
   },
 
-  speakShadowingSentence() {
+  speakShadowingSentence(rate = 0.95) {
     const sentence = SHADOWING_SENTENCES[this.state.currentShadowIndex];
     if (!sentence) return;
-    this.speakEnglish(sentence.text);
+    this.speakEnglish(sentence.text, { rate });
   },
 
   nextShadowingSentence() {
@@ -840,6 +840,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     'fetch-news-api': (ctx) => ctx.handleNewsGeneration(),
     'play-news-audio': (ctx) => ctx.playNewsAudio(),
     'play-shadow-audio': (ctx) => ctx.speakShadowingSentence(),
+    'play-shadow-audio-half': (ctx) => ctx.speakShadowingSentence(0.5),
     'next-shadow': (ctx) => ctx.nextShadowingSentence(),
     'prev-shadow': (ctx) => ctx.prevShadowingSentence(),
     'start-chat-api': (ctx) => ctx.startConversationLesson(),
