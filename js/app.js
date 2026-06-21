@@ -262,6 +262,46 @@ const App = {
     localStorage.setItem('vocabStats', JSON.stringify(stats));
   },
 
+  getShadowingStats() {
+    try {
+      return JSON.parse(localStorage.getItem('shadowingStats') || '{}');
+    } catch (e) {
+      console.error('Failed to parse shadowingStats', e);
+      return {};
+    }
+  },
+
+  saveShadowingStats(stats) {
+    localStorage.setItem('shadowingStats', JSON.stringify(stats));
+  },
+
+  buildShadowingPracticeList(maxItems = 10) {
+    const stats = this.getShadowingStats();
+    const pool = SHADOWING_SENTENCES.map(item => {
+      const key = item.text;
+      const stat = stats[key] || { timesSeen: 0, lastReviewed: null };
+      return { ...item, key, stat };
+    });
+
+    pool.sort((a, b) => {
+      const diff = a.stat.timesSeen - b.stat.timesSeen;
+      if (diff !== 0) return diff;
+      return Math.random() - 0.5;
+    });
+
+    return this.shuffle(pool.slice(0, maxItems));
+  },
+
+  updateShadowingStats(sentenceKey) {
+    const stats = this.getShadowingStats();
+    const todayStr = this.getTodayDateString();
+    const item = stats[sentenceKey] || { timesSeen: 0, lastReviewed: null };
+    item.timesSeen = (item.timesSeen || 0) + 1;
+    item.lastReviewed = todayStr;
+    stats[sentenceKey] = item;
+    this.saveShadowingStats(stats);
+  },
+
   addDaysToDate(date, days) {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
@@ -486,6 +526,8 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   startShadowing() {
     this.state.currentShadowIndex = 0;
+    this.state.shadowingPracticeList = this.buildShadowingPracticeList(10);
+    this.state.shadowingSeenKeys = new Set();
     this.state.currentLessonStep = 2;
     this.renderLessonList();
     this.switchScreen('shadowing');
@@ -493,10 +535,17 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   },
 
   loadShadowingSentence() {
-    const total = SHADOWING_SENTENCES.length;
+    const list = this.state.shadowingPracticeList || [];
+    const total = list.length;
     if (!total) return;
     const index = Math.min(Math.max(this.state.currentShadowIndex, 0), total - 1);
-    const sentence = SHADOWING_SENTENCES[index];
+    const sentence = list[index];
+    if (!sentence) return;
+    const sentenceKey = sentence.key || sentence.text;
+    if (!this.state.shadowingSeenKeys.has(sentenceKey)) {
+      this.state.shadowingSeenKeys.add(sentenceKey);
+      this.updateShadowingStats(sentenceKey);
+    }
     document.getElementById('shadowingCount').textContent = `${index + 1} / ${total}`;
     document.getElementById('shadowingText').textContent = sentence.text;
     document.getElementById('shadowingPhonetic').textContent = sentence.phonetic || '';
@@ -504,13 +553,15 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   },
 
   speakShadowingSentence(rate = 0.95) {
-    const sentence = SHADOWING_SENTENCES[this.state.currentShadowIndex];
+    const list = this.state.shadowingPracticeList || [];
+    const sentence = list[this.state.currentShadowIndex];
     if (!sentence) return;
     this.speakEnglish(sentence.text, { rate });
   },
 
   nextShadowingSentence() {
-    if (this.state.currentShadowIndex < SHADOWING_SENTENCES.length - 1) {
+    const list = this.state.shadowingPracticeList || [];
+    if (this.state.currentShadowIndex < list.length - 1) {
       this.state.currentShadowIndex += 1;
       this.loadShadowingSentence();
     } else {
