@@ -21,7 +21,8 @@ const App = {
     chatTurnCount: 0, chatHistory: [], isChatActive: true,
     todayWords: 0, todayNews: 0, todayShadow: 0, todayConv: 0, todayWriting: 0,
     currentShadowIndex: 0,
-    lessonStartTime: null
+    lessonStartTime: null,
+    completedLessons: { 1: false, 2: false, 3: false, 4: false, 5: false }
   },
 
   ttsVoices: [],
@@ -375,16 +376,28 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   },
 
   updateLessonUI() {
-    const { currentLessonStep } = this.state;
-    document.getElementById('progressBar').style.width = `${(currentLessonStep / LESSON_STEPS.length) * 100}%`;
+    const { currentLessonStep, completedLessons } = this.state;
+    const completedCount = LESSON_STEPS.filter(lesson => completedLessons[lesson.id]).length;
+    document.getElementById('progressBar').style.width = `${(completedCount / LESSON_STEPS.length) * 100}%`;
     LESSON_STEPS.forEach(lesson => {
       const el = document.getElementById(`item-${lesson.id}`); if(!el) return;
       el.classList.remove('active', 'completed');
-      if (lesson.id < currentLessonStep) { el.classList.add('completed'); el.querySelector('.step-number').innerHTML = '✓'; }
-      else if (lesson.id === currentLessonStep) { el.classList.add('active'); el.querySelector('.step-number').innerHTML = lesson.id; }
+      const stepNumber = el.querySelector('.step-number');
+      if (completedLessons[lesson.id]) {
+        el.classList.add('completed');
+        if (stepNumber) stepNumber.innerHTML = '✓';
+      } else if (lesson.id === currentLessonStep) {
+        el.classList.add('active');
+        if (stepNumber) stepNumber.innerHTML = lesson.id;
+      } else {
+        if (stepNumber) stepNumber.innerHTML = lesson.id;
+      }
     });
     const btn = document.getElementById('completeBtn');
-    btn.classList.toggle('ready', currentLessonStep > LESSON_STEPS.length); btn.disabled = currentLessonStep <= LESSON_STEPS.length;
+    if (btn) {
+      btn.classList.toggle('ready', currentLessonStep > LESSON_STEPS.length);
+      btn.disabled = currentLessonStep <= LESSON_STEPS.length;
+    }
   },
 
   startVocabulary() {
@@ -437,6 +450,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   finishShadowingLesson() {
     this.state.todayShadow += 1;
+    this.state.completedLessons[3] = true;
     this.saveLearningLog(0);
     alert('Shadowing終了! 10文のシャドーイングを完了しました。次のレッスンに進みます。');
     this.addGlobalScore(30);
@@ -482,6 +496,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     if (this.state.currentQuizIndex < 9) { this.state.currentQuizIndex++; this.loadQuiz(); }
     else {
       alert(`Vocabulary終了! スコア: +${this.state.scoreIncrement} pts`);
+      this.state.completedLessons[1] = true;
       this.saveLearningLog(0);
       this.addGlobalScore(this.state.scoreIncrement);
       this.state.currentLessonStep = 2; this.renderLessonList(); this.switchScreen('lesson');
@@ -670,11 +685,19 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     else { btn.classList.add('wrong'); document.querySelectorAll('.news-quiz-section .btn-option').forEach(b => { if(b.textContent === correct) b.classList.add('correct'); }); }
     setTimeout(() => {
       if(this.state.currentNewsQuizIndex < 2) { this.state.currentNewsQuizIndex++; this.loadNewsQuiz(); }
-      else { alert('News学習完了！'); this.state.currentLessonStep = 3; this.renderLessonList(); this.switchScreen('lesson'); }
+      else {
+        alert('News学習完了！');
+        this.state.completedLessons[2] = true;
+        this.state.currentLessonStep = 3;
+        this.renderLessonList();
+        this.switchScreen('lesson');
+      }
     }, 1500);
   },
 
   async startConversationLesson() {
+    this.state.currentLessonStep = 4;
+    this.renderLessonList();
     const key = document.getElementById('convApiKeyInput').value.trim(); if(!key) return alert('APIキーを入力してください');
     localStorage.setItem('gemini_key', key); document.getElementById('convApiKeyBlock').style.display = 'none'; document.getElementById('convLoader').style.display = 'block';
 
@@ -742,9 +765,15 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     finally { document.getElementById('chatSendBtn').disabled = false; inputEl.disabled = false; if(this.state.isChatActive) inputEl.focus(); }
   },
 
-  finishConvLesson() { this.saveLearningLog(0); this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson'); },
+  finishConvLesson() { this.state.completedLessons[4] = true; this.saveLearningLog(0); this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson'); },
 
-  startWritingMode() { document.getElementById('writingInitBlock').style.display = 'none'; document.getElementById('writingArea').style.display = 'flex'; document.getElementById('writingFeedbackArea').style.display = 'none'; },
+  startWritingMode() {
+    this.state.currentLessonStep = 5;
+    this.renderLessonList();
+    document.getElementById('writingInitBlock').style.display = 'none';
+    document.getElementById('writingArea').style.display = 'flex';
+    document.getElementById('writingFeedbackArea').style.display = 'none';
+  },
   async submitWritingLesson() {
     const userText = document.getElementById('writingInputField').value.trim(); if(!userText) return alert('英文を入力してください');
     const key = localStorage.getItem('gemini_key'); document.getElementById('writingArea').style.display = 'none'; document.getElementById('writingLoader').style.display = 'block';
@@ -775,6 +804,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   },
 
   finishWritingLesson() {
+    this.state.completedLessons[5] = true;
     this.saveLearningLog(0);
     this.addGlobalScore(100); this.state.currentLessonStep = 5; this.updateLessonUI(); this.switchScreen('lesson');
     alert('🎉 今日の全レッスンステップをクリアしました！素晴らしい集中力です！');
@@ -800,9 +830,9 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     'go-lesson': (ctx) => ctx.startTodayLessonWorkflow(),
     'go-vocab': (ctx) => ctx.startVocabulary(),
     'go-shadow': (ctx) => ctx.startShadowing(),
-    'go-news': (ctx) => ctx.switchScreen('news'),
-    'go-conv': (ctx) => ctx.switchScreen('conv'),
-    'go-writing': (ctx) => ctx.switchScreen('writing'),
+    'go-news': (ctx) => { ctx.state.currentLessonStep = 2; ctx.renderLessonList(); ctx.switchScreen('news'); },
+    'go-conv': (ctx) => { ctx.state.currentLessonStep = 4; ctx.renderLessonList(); ctx.switchScreen('conv'); },
+    'go-writing': (ctx) => { ctx.state.currentLessonStep = 5; ctx.renderLessonList(); ctx.switchScreen('writing'); },
     'go-history': (ctx) => { ctx.renderHistoryScreen(); ctx.switchScreen('history'); },
     'go-home': (ctx) => ctx.switchScreen('home'),
     'vocab-retry': (ctx) => ctx.retryCurrentQuiz(),
