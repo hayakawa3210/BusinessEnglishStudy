@@ -249,6 +249,84 @@ const App = {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   },
 
+  getVocabStats() {
+    try {
+      return JSON.parse(localStorage.getItem('vocabStats') || '{}');
+    } catch (e) {
+      console.error('Failed to parse vocabStats', e);
+      return {};
+    }
+  },
+
+  saveVocabStats(stats) {
+    localStorage.setItem('vocabStats', JSON.stringify(stats));
+  },
+
+  addDaysToDate(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  },
+
+  buildVocabQuizList(maxItems = 10) {
+    const todayStr = this.getTodayDateString();
+    const today = new Date(todayStr);
+    const stats = this.getVocabStats();
+
+    const pool = VOCABULARY_POOL.map(item => {
+      const stat = stats[item.w] || { correct: 0, wrong: 0, ease: 2.5, interval: 1, lastReviewed: null, nextReview: todayStr };
+      return {
+        ...item,
+        stat,
+        nextReviewDate: stat.nextReview ? new Date(stat.nextReview) : today,
+        ease: stat.ease
+      };
+    });
+
+    const dueItems = pool.filter(item => item.nextReviewDate <= today);
+    dueItems.sort((a, b) => {
+      const aScore = (a.stat.wrong - a.stat.correct) * 10 - (a.nextReviewDate - today);
+      const bScore = (b.stat.wrong - b.stat.correct) * 10 - (b.nextReviewDate - today);
+      return bScore - aScore;
+    });
+
+    const selected = [];
+    const picked = new Set();
+    dueItems.slice(0, maxItems).forEach(item => { selected.push(item); picked.add(item.w); });
+
+    if (selected.length < maxItems) {
+      const rest = pool
+        .filter(item => !picked.has(item.w))
+        .sort((a, b) => a.nextReviewDate - b.nextReviewDate);
+      rest.slice(0, maxItems - selected.length).forEach(item => { selected.push(item); picked.add(item.w); });
+    }
+
+    return this.shuffle(selected);
+  },
+
+  updateVocabStats(word, isCorrect) {
+    const stats = this.getVocabStats();
+    const todayStr = this.getTodayDateString();
+    const now = new Date(todayStr);
+    const existing = stats[word] || { correct: 0, wrong: 0, ease: 2.5, interval: 1, lastReviewed: null, nextReview: todayStr };
+
+    if (isCorrect) {
+      existing.correct += 1;
+      existing.ease = Math.min(4.0, existing.ease + 0.15);
+      const baseInterval = existing.lastReviewed ? existing.interval : 1;
+      existing.interval = Math.max(1, Math.round(baseInterval * existing.ease));
+    } else {
+      existing.wrong += 1;
+      existing.ease = Math.max(1.3, existing.ease - 0.25);
+      existing.interval = 1;
+    }
+
+    existing.lastReviewed = todayStr;
+    existing.nextReview = this.addDaysToDate(now, existing.interval).toISOString().slice(0, 10);
+    stats[word] = existing;
+    this.saveVocabStats(stats);
+  },
+
   saveLearningLog(sessionMinutes = 0) {
     const hasActivity = this.state.todayWords || this.state.todayNews || this.state.todayShadow || this.state.todayConv || this.state.todayWriting;
     if (!hasActivity) return;
@@ -401,8 +479,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   },
 
   startVocabulary() {
-    let doublePool = [...VOCABULARY_POOL, ...VOCABULARY_POOL].map(item => ({...item}));
-    this.state.quizList = this.shuffle(doublePool).slice(0, 10);
+    this.state.quizList = this.buildVocabQuizList(10);
     this.state.currentQuizIndex = 0; this.state.scoreIncrement = 0;
     this.switchScreen('vocab'); this.loadQuiz();
   },
@@ -481,6 +558,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     const isCorrect = val === currentQuiz.m; document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
     
     this.state.todayWords++;
+    this.updateVocabStats(currentQuiz.w, isCorrect);
 
     if (isCorrect) {
       btnElement.classList.add('correct'); document.getElementById('resultHeader').innerHTML = '〇 正解'; document.getElementById('resultHeader').className = 'result-header correct'; this.state.scoreIncrement += 10;
