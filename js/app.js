@@ -5,8 +5,8 @@ const APP_LAST_UPDATED = window.APP_LAST_UPDATED || (document.lastModified ? new
 
 const LESSON_STEPS = [
   { id: 1, name: 'Vocabulary', type: 'Lesson 1' },
-  { id: 2, name: 'News', type: 'Lesson 2' },
-  { id: 3, name: 'Shadowing', type: 'Lesson 3' },
+  { id: 2, name: 'Shadowing', type: 'Lesson 2' },
+  { id: 3, name: 'News', type: 'Lesson 3' },
   { id: 4, name: 'Conversation', type: 'Lesson 4' },
   { id: 5, name: 'Writing', type: 'Lesson 5' }
 ];
@@ -409,7 +409,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   startShadowing() {
     this.state.currentShadowIndex = 0;
-    this.state.currentLessonStep = 3;
+    this.state.currentLessonStep = 2;
     this.renderLessonList();
     this.switchScreen('shadowing');
     this.loadShadowingSentence();
@@ -450,11 +450,11 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
 
   finishShadowingLesson() {
     this.state.todayShadow += 1;
-    this.state.completedLessons[3] = true;
+    this.state.completedLessons[2] = true;
     this.saveLearningLog(0);
     alert('Shadowing終了! 10文のシャドーイングを完了しました。次のレッスンに進みます。');
     this.addGlobalScore(30);
-    this.state.currentLessonStep = 4;
+    this.state.currentLessonStep = 3;
     this.renderLessonList();
     this.switchScreen('lesson');
   },
@@ -687,8 +687,8 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
       if(this.state.currentNewsQuizIndex < 2) { this.state.currentNewsQuizIndex++; this.loadNewsQuiz(); }
       else {
         alert('News学習完了！');
-        this.state.completedLessons[2] = true;
-        this.state.currentLessonStep = 3;
+        this.state.completedLessons[3] = true;
+        this.state.currentLessonStep = 4;
         this.renderLessonList();
         this.switchScreen('lesson');
       }
@@ -765,7 +765,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     finally { document.getElementById('chatSendBtn').disabled = false; inputEl.disabled = false; if(this.state.isChatActive) inputEl.focus(); }
   },
 
-  finishConvLesson() { this.state.completedLessons[4] = true; this.saveLearningLog(0); this.addGlobalScore(50); this.state.currentLessonStep = 4; this.renderLessonList(); this.switchScreen('lesson'); },
+  finishConvLesson() { this.state.completedLessons[4] = true; this.saveLearningLog(0); this.addGlobalScore(50); this.state.currentLessonStep = 5; this.renderLessonList(); this.switchScreen('lesson'); },
 
   startWritingMode() {
     this.state.currentLessonStep = 5;
@@ -830,7 +830,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     'go-lesson': (ctx) => ctx.startTodayLessonWorkflow(),
     'go-vocab': (ctx) => ctx.startVocabulary(),
     'go-shadow': (ctx) => ctx.startShadowing(),
-    'go-news': (ctx) => { ctx.state.currentLessonStep = 2; ctx.renderLessonList(); ctx.switchScreen('news'); },
+    'go-news': (ctx) => { ctx.state.currentLessonStep = 3; ctx.renderLessonList(); ctx.switchScreen('news'); },
     'go-conv': (ctx) => { ctx.state.currentLessonStep = 4; ctx.renderLessonList(); ctx.switchScreen('conv'); },
     'go-writing': (ctx) => { ctx.state.currentLessonStep = 5; ctx.renderLessonList(); ctx.switchScreen('writing'); },
     'go-history': (ctx) => { ctx.renderHistoryScreen(); ctx.switchScreen('history'); },
