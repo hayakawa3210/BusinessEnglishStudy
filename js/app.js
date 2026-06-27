@@ -651,10 +651,15 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     localStorage.setItem('gemini_key', key); document.getElementById('apiKeyBlock').style.display = 'none'; document.getElementById('newsLoader').style.display = 'block';
     // Add a small random jitter to the prompt so the model produces varied output each call
     const jitter = Math.random().toString(36).slice(2,8);
-    let promptText = "Generate one short English business news article. Output strictly in valid JSON format with double quotes only, and do not add any explanation or extra text outside the JSON object. Use the exact schema below: { \"title\": \"English Title\", \"body\": \"English news body text (about 3 sentences)\", \"summary_ja\": \"Detailed Japanese summary\", \"difficulty\": \"Intermediate\", \"toeic\": \"700+\", \"words\": [ {\"word\": \"word1\", \"meaning\": \"meaning1\"}, {\"word\": \"word2\", \"meaning\": \"meaning2\"}, {\"word\": \"word3\", \"meaning\": \"meaning3\"}, {\"word\": \"word4\", \"meaning\": \"meaning4\"}, {\"word\": \"word5\", \"meaning\": \"meaning5\"} ], \"quizzes\": [ {\"question\": \"Question1?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"A\"}, {\"question\": \"Question2?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"B\"}, {\"question\": \"Question3?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"C\"} ] }";
+    let promptText = "Generate one short English business news article. Output strictly in valid JSON format with double quotes only, and do not add any explanation or extra text outside the JSON object. Use the exact schema below: { \"title\": \"English Title\", \"body\": \"Short English news body text (strictly within 3 sentences, around 60 words)\", \"summary_ja\": \"Detailed Japanese summary\", \"difficulty\": \"Intermediate\", \"toeic\": \"700+\", \"words\": [ {\"word\": \"word1\", \"meaning\": \"meaning1\"}, {\"word\": \"word2\", \"meaning\": \"meaning2\"}, {\"word\": \"word3\", \"meaning\": \"meaning3\"}, {\"word\": \"word4\", \"meaning\": \"meaning4\"}, {\"word\": \"word5\", \"meaning\": \"meaning5\"} ], \"quizzes\": [ {\"question\": \"Question1?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"A\"}, {\"question\": \"Question2?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"B\"}, {\"question\": \"Question3?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"C\"} ] }";
     promptText += `\n\nVariation seed: ${jitter} — please vary names, numbers, and details accordingly.`;
     try {
-      const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true, { temperature: 0.9, topP: 0.95 });
+      // maxOutputTokens を 2000 に引き上げて途切れを防ぐ
+      const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true, { 
+        temperature: 0.9, 
+        topP: 0.95,
+        maxOutputTokens: 2000 
+      });
       let parsed;
       try {
         parsed = this.safeParseJson(jsonText);
