@@ -479,7 +479,20 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   }
   
   const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data);
+  const candidate = data.candidates?.[0];
+  if (!candidate) return JSON.stringify(data);
+
+  const extractText = (item) => {
+    if (item == null) return '';
+    if (typeof item === 'string') return item;
+    if (Array.isArray(item)) return item.map(extractText).join('');
+    if (typeof item.text === 'string') return item.text;
+    if (Array.isArray(item.parts)) return item.parts.map(extractText).join('');
+    return '';
+  };
+
+  const flattened = extractText(candidate.content);
+  return flattened || candidate.output || data.text || JSON.stringify(data);
 },
 
   startTodayLessonWorkflow() { this.state.lessonStartTime = new Date(); this.switchScreen('lesson'); },
@@ -638,7 +651,7 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
     localStorage.setItem('gemini_key', key); document.getElementById('apiKeyBlock').style.display = 'none'; document.getElementById('newsLoader').style.display = 'block';
     // Add a small random jitter to the prompt so the model produces varied output each call
     const jitter = Math.random().toString(36).slice(2,8);
-    let promptText = "Generate one short English business news article. Output strictly in JSON format matching this schema: { 'title': 'English Title', 'body': 'English news body text (about 3 sentences)', 'summary_ja': 'Detailed Japanese summary', 'difficulty': 'Intermediate', 'toeic': '700+', 'words': [ {'word': 'word1', 'meaning': 'meaning1'}, {'word': 'word2', 'meaning': 'meaning2'}, {'word': 'word3', 'meaning': 'meaning3'}, {'word': 'word4', 'meaning': 'meaning4'}, {'word': 'word5', 'meaning': 'meaning5'} ], 'quizzes': [ {'question': 'Question1?', 'options': ['A', 'B', 'C', 'D'], 'answer': 'A'}, {'question': 'Question2?', 'options': ['A','B','C','D'], 'answer': 'B'}, {'question': 'Question3?', 'options': ['A','B','C','D'], 'answer': 'C'} ] }";
+    let promptText = "Generate one short English business news article. Output strictly in valid JSON format with double quotes only, and do not add any explanation or extra text outside the JSON object. Use the exact schema below: { \"title\": \"English Title\", \"body\": \"English news body text (about 3 sentences)\", \"summary_ja\": \"Detailed Japanese summary\", \"difficulty\": \"Intermediate\", \"toeic\": \"700+\", \"words\": [ {\"word\": \"word1\", \"meaning\": \"meaning1\"}, {\"word\": \"word2\", \"meaning\": \"meaning2\"}, {\"word\": \"word3\", \"meaning\": \"meaning3\"}, {\"word\": \"word4\", \"meaning\": \"meaning4\"}, {\"word\": \"word5\", \"meaning\": \"meaning5\"} ], \"quizzes\": [ {\"question\": \"Question1?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"A\"}, {\"question\": \"Question2?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"B\"}, {\"question\": \"Question3?\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"C\"} ] }";
     promptText += `\n\nVariation seed: ${jitter} — please vary names, numbers, and details accordingly.`;
     try {
       const jsonText = await this.callGeminiAPI(key, [{ role: "user", parts: [{ text: promptText }] }], true, { temperature: 0.9, topP: 0.95 });
@@ -665,33 +678,86 @@ async callGeminiAPI(apiKey, contents, isJson = false, genConfig = {}) {
   // Try to safely extract JSON object/array from a potentially noisy text
   safeParseJson(text) {
     if (!text || typeof text !== 'string') throw new Error('empty response');
-    // quick try
-    try { return JSON.parse(text); } catch (e) {
-      // clean code fences and common wrappers
-      let cleaned = text.replace(/```json|```/g, '').trim();
-      // attempt to find the largest {...} block
-      const firstObj = cleaned.indexOf('{');
-      const lastObj = cleaned.lastIndexOf('}');
-      if (firstObj !== -1 && lastObj !== -1 && lastObj > firstObj) {
-        const sub = cleaned.slice(firstObj, lastObj + 1);
-        try { return JSON.parse(sub); } catch (e2) { /* fallthrough */ }
+
+    const normalize = (value) => value.replace(/```json|```/g, '').replace(/^\s*json\s*/i, '').trim();
+    const scrub = (value) => value.replace(/\r/g, '').trim();
+    const cleanText = scrub(normalize(text));
+
+    const escapeNewlinesInStrings = (value) => {
+      let result = '';
+      let inString = false;
+      let escape = false;
+      for (let i = 0; i < value.length; i++) {
+        const char = value[i];
+        if (inString) {
+          if (escape) {
+            result += char;
+            escape = false;
+            continue;
+          }
+          if (char === '\\') {
+            result += char;
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = false;
+            result += char;
+            continue;
+          }
+          if (char === '\n') {
+            result += '\\n';
+            continue;
+          }
+        } else {
+          if (char === '"') {
+            inString = true;
+          }
+        }
+        result += char;
       }
-      // attempt to find array
-      const firstArr = cleaned.indexOf('[');
-      const lastArr = cleaned.lastIndexOf(']');
-      if (firstArr !== -1 && lastArr !== -1 && lastArr > firstArr) {
-        const sub2 = cleaned.slice(firstArr, lastArr + 1);
-        try { return JSON.parse(sub2); } catch (e3) { /* fallthrough */ }
+      return result;
+    };
+
+    const tryParse = (value) => {
+      try { return JSON.parse(value); } catch (e) { return null; }
+    };
+
+    const fixSingleQuotes = (value) => {
+      let fixed = value;
+      fixed = fixed.replace(/,\s*([}\]])/g, '$1');
+      fixed = fixed.replace(/(['"])?([a-zA-Z0-9_]+)\1\s*:/g, '"$2":');
+      fixed = fixed.replace(/:\s*'([^']*)'/g, ': "$1"');
+      fixed = fixed.replace(/,\s*]/g, ']');
+      fixed = fixed.replace(/,\s*}/g, '}');
+      return fixed;
+    };
+
+    const extractJson = (value) => {
+      const match = value.match(/(\{[\s\S]*\}|\[[\s\S]*\])/m);
+      return match ? match[0] : null;
+    };
+
+    const parseCandidates = [
+      cleanText,
+      escapeNewlinesInStrings(cleanText),
+      fixSingleQuotes(cleanText),
+      fixSingleQuotes(escapeNewlinesInStrings(cleanText))
+    ];
+
+    for (const candidate of parseCandidates) {
+      const parsed = tryParse(candidate);
+      if (parsed) return parsed;
+      const extracted = extractJson(candidate);
+      if (extracted) {
+        const parsedExtracted = tryParse(extracted) || tryParse(fixSingleQuotes(extracted)) || tryParse(escapeNewlinesInStrings(extracted));
+        if (parsedExtracted) return parsedExtracted;
       }
-      // As a last resort, try to extract using a regex for {...}
-      const match = cleaned.match(/\{[\s\S]*\}/m);
-      if (match) {
-        try { return JSON.parse(match[0]); } catch (e4) { /* fallthrough */ }
-      }
-      const err = new Error('Unable to parse JSON from response');
-      err.raw = cleaned;
-      throw err;
     }
+
+    const err = new Error('Unable to parse JSON from response');
+    err.raw = cleanText;
+    throw err;
   },
 
   highlightKeywords(text, words) {
